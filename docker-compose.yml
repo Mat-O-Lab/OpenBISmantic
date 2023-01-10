@@ -4,11 +4,9 @@ services:
     build: .
     container_name: "openbis"
     environment:
-      SERVER_HOST_PORT: "docker-dev.iwm.fraunhofer.de:${OPENBIS_PORT}"
+      SERVER_HOST_PORT: "localhost:${OPENBIS_PORT}"
       POSTGRES_PASSWORD: "changeME"
       ADMIN_PASS: ${ADMIN_PASS}
-    #volumes:
-    #  - ./:/src
     ports:
       - ${OPENBIS_PORT}:8080
     restart: always
