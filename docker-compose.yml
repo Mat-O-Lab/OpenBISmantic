@@ -4,7 +4,7 @@ services:
     build: .
     container_name: "openbis"
     environment:
-      SERVER_HOST_PORT: "localhost:${OPENBIS_PORT}"
+      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT}"
       POSTGRES_PASSWORD: "changeME"
       ADMIN_PASS: ${ADMIN_PASS}
     ports:
