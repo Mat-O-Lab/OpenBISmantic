@@ -1,0 +1,3 @@
+[submodule "OpenBISmantic-plugin"]
+	path = OpenBISmantic-plugin
+	url = https://github.com/Mat-O-Lab/OpenBISmantic-plugin.git
