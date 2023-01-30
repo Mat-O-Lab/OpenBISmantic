@@ -1,0 +1,3 @@
+[submodule "Testcases/YoungsModulus/LebeDigital"]
+	path = Testcases/YoungsModulus/LebeDigital
+	url = https://github.com/BAMresearch/LebeDigital.git
