@@ -9,8 +9,6 @@
 git submodule update --init
 cd LebeDigital
 
-# change branch
-git checkout 56-open-bis-integration-derived-sample # temporally soon main!!
 git pull
 # build enviroment
 conda env create -f environment.yml
