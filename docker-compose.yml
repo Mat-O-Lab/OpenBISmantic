@@ -4,7 +4,7 @@ services:
     build: .
     container_name: "openbis"
     environment:
-      SERVER_HOST_PORT: "localhost:${OPENBIS_PORT}"
+      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT}"
       POSTGRES_PASSWORD: "changeME"
       ADMIN_PASS: ${ADMIN_PASS}
     ports:
@@ -12,7 +12,23 @@ services:
     restart: always
     networks:
       - openbis_net
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://${HOST_NAME}:${OPENBIS_PORT}/openbis"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+  init_database:
+    build:
+      context: ./init_database
+      dockerfile: ./Dockerfile
+    container_name: init_database
+    depends_on:
+      openbis:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - openbis_net
 networks:
   openbis_net:
     name: opnbis_net
