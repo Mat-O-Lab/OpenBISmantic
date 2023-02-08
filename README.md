@@ -3,6 +3,11 @@ Demonstrator of a Export Mechanism for OpenBIS Data to Sematic Data.
 
 # Install
 
+## pull repository
+```bash
+git clone https://github.com/Mat-O-Lab/OpenBISmantic.git
+cd OpenBISmantic
+```
 ## create a .env file with
 ```bash
 ADMIN_PASS=<adminpassw>
@@ -12,13 +17,27 @@ OPENBIS_SSL_PORT=<port> (e.g., 443)
 GROUP_NAME=<groupname> (e.g., matolab)
 GROUP_ID=<gid> (e.g., 12940)
 ```
-
-## Run Server
+## pull plugin submodule
+To clone the submodule:
 ```bash
-docker-compose up
+cd OpenBISmantic-plugin
+git submodule update --init --recursive
 ```
 
-## Data retention
+## run server
+```bash
+docker compose up -d
+```
+
+## stop server and clean up
+```bash
+docker compose down
+docker system prune --all
+```
+
+# Notes
+
+## data retention
 The current configuration is intended to **not** support data retention. If required, please add to `docker-compose.yml` the following lines:
 ```
     openbis:
