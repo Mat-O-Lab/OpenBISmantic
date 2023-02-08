@@ -1,5 +1,5 @@
-# OpenBISmantic
-Demonstrator of a Export Mechanism for OpenBIS Data to Sematic Data.
+# openBISmantic
+Demonstrator of a Export Mechanism for openBIS Data to Semantic Data.
 
 # Install
 
