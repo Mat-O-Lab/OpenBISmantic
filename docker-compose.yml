@@ -14,7 +14,7 @@ services:
       - openbis_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://${HOST_NAME}:${OPENBIS_PORT}/openbis"]
-      interval: 10s
+      interval: 15s
       timeout: 10s
       retries: 30
       start_period: 30s
@@ -23,6 +23,9 @@ services:
       context: ./init_database
       dockerfile: ./Dockerfile
     container_name: init_database
+    environment:
+      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT}"
+      ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       openbis:
         condition: service_healthy
