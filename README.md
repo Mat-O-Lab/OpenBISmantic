@@ -16,13 +16,14 @@ OPENBIS_PORT=<port> (e.g., 80)
 OPENBIS_SSL_PORT=<port> (e.g., 443)
 GROUP_NAME=<groupname> (e.g., matolab)
 GROUP_ID=<gid> (e.g., 12940)
-REPODIR=<workdir> (e.g., ~/OpenBISmantic)
+REPO_DIR=<lwd> (e.g., ~/OpenBISmantic)
 ```
 ## pull plugin submodule
 To clone the submodule:
 ```bash
 cd OpenBISmantic-plugin
 git submodule update --init --recursive
+cd ..
 ```
 
 ## run server
