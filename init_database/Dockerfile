@@ -1,5 +1,7 @@
-FROM python:3
+FROM continuumio/miniconda3
 
+ADD ./examples /examples
+WORKDIR /examples
 
 ADD ./entrypoint.sh ./entrypoint.sh
 
