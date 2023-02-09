@@ -1,8 +1,9 @@
 version: "3"
 services:
   openbis:
-    build: .
+    #build: .
     container_name: "openbis"
+    image: ghcr.io/mat-o-lab/openbismatic:latest
     environment:
       #must be set to 443 cause of self signed certs
       SERVER_HOST_PORT: "${HOST_NAME}:443"
@@ -21,10 +22,11 @@ services:
       retries: 30
       start_period: 30s
   init_database:
-    build:
-      context: ./init_database
-      dockerfile: ./Dockerfile
+    # build:
+    #   context: ./init_database
+    #   dockerfile: ./Dockerfile
     container_name: init_database
+    image: ghcr.io/mat-o-lab/openbismatic_init:latest
     environment:
       SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT_HTTPS}"
       ADMIN_PASS: ${ADMIN_PASS}

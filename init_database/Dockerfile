@@ -1,6 +1,7 @@
 FROM continuumio/miniconda3
 
 ADD ./examples /examples
+
 WORKDIR /examples/LebeDigital
 
 # Make RUN commands use `bash --login`:
