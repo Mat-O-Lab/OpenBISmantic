@@ -4,16 +4,18 @@ services:
     build: .
     container_name: "openbis"
     environment:
-      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT}"
+      #must be set to 443 cause of self signed certs
+      SERVER_HOST_PORT: "${HOST_NAME}:443"
       POSTGRES_PASSWORD: "changeME"
       ADMIN_PASS: ${ADMIN_PASS}
     ports:
-      - ${OPENBIS_PORT}:8080
+      - ${OPENBIS_PORT_HTTP}:8080
+      - ${OPENBIS_PORT_HTTPS}:443
     restart: always
     networks:
       - openbis_net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://${HOST_NAME}:${OPENBIS_PORT}/openbis"]
+      test: ["CMD", "curl", "-f","--insecure", "https://${HOST_NAME}:${OPENBIS_PORT_HTTPS}/openbis"]
       interval: 15s
       timeout: 10s
       retries: 30
@@ -24,7 +26,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: init_database
     environment:
-      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT}"
+      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT_HTTPS}"
       ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       openbis:
