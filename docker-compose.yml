@@ -4,14 +4,18 @@ services:
     #build: .
     container_name: "openbis"
     image: ghcr.io/mat-o-lab/openbismatic:latest
+    env_file: 
+      - .env
     environment:
-      #must be set to 443 cause of self signed certs
-      SERVER_HOST_PORT: "${HOST_NAME}:443"
-      POSTGRES_PASSWORD: "changeME"
+      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_SSL_PORT}"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       ADMIN_PASS: ${ADMIN_PASS}
+      GROUP_NAME: ${GROUP_NAME}
+      GROUP_ID : ${GROUP_ID}
+
     ports:
-      - ${OPENBIS_PORT_HTTP}:8080
-      - ${OPENBIS_PORT_HTTPS}:443
+      - ${OPENBIS_PORT}:8080
+      - ${OPENBIS_SSL_PORT}:443
     restart: always
     networks:
       - openbis_net
@@ -38,5 +42,5 @@ services:
       - openbis_net
 networks:
   openbis_net:
-    name: opnbis_net
+    name: openbis_net
     driver: bridge
