@@ -5,12 +5,12 @@ Demonstrator of a Export Mechanism for openBIS Data to Semantic Data.
 
 ## create a .env file with
 ```bash
-ADMIN_PASS=<adminpassw>
-HOST_NAME=<fqurlofhost>
-OPENBIS_PORT=<port>
+ADMIN_PASS=<password>
+HOST_NAME=<hostname_of_deployment>
+OPENBIS_PORT_HTTP=<unsecure_port>
+OPENBIS_PORT_HTTPS=<443>
 ```
 
 ## Run Server
 ```bash
 docker-compose up
-```
