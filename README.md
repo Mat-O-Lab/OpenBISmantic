@@ -1,5 +1,5 @@
-# OpenBISmantic
-Demonstrator of a Export Mechanism for OpenBIS Data to Sematic Data.
+# openBISmantic
+Demonstrator of a Export Mechanism for openBIS Data to Semantic Data.
 
 # Install
 
@@ -10,6 +10,7 @@ cd OpenBISmantic
 ```
 ## create a .env file with
 ```bash
+
 ADMIN_PASS=<adminpassw>
 HOST_NAME=<fqurlofhost> (e.g., openbis.matolab.org)
 OPENBIS_PORT=<port> (e.g., 80)

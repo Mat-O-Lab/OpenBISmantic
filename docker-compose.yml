@@ -1,8 +1,9 @@
 version: "3"
 services:
   openbis:
-    build: .
+    #build: .
     container_name: "openbis"
+    image: ghcr.io/mat-o-lab/openbismatic:latest
     env_file: 
       - .env
     environment:
@@ -11,13 +12,34 @@ services:
       ADMIN_PASS: ${ADMIN_PASS}
       GROUP_NAME: ${GROUP_NAME}
       GROUP_ID : ${GROUP_ID}
+
     ports:
-      - ${OPENBIS_PORT}:80
+      - ${OPENBIS_PORT}:8080
       - ${OPENBIS_SSL_PORT}:443
     restart: always
     networks:
       - openbis_net
-
+    healthcheck:
+      test: ["CMD", "curl", "-f","--insecure", "https://${HOST_NAME}:${OPENBIS_PORT_HTTPS}/openbis"]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+  init_database:
+    # build:
+    #   context: ./init_database
+    #   dockerfile: ./Dockerfile
+    container_name: init_database
+    image: ghcr.io/mat-o-lab/openbismatic_init:latest
+    environment:
+      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_PORT_HTTPS}"
+      ADMIN_PASS: ${ADMIN_PASS}
+    depends_on:
+      openbis:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - openbis_net
 networks:
   openbis_net:
     name: openbis_net
