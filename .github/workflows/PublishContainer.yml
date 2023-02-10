@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - dockerfile: ./Dockerfile
-            image: ghcr.io/mat-o-lab/openbismatic
+            image: ghcr.io/mat-o-lab/openbismantic
             context: .
           - dockerfile: ./init_database/Dockerfile
             image: ghcr.io/mat-o-lab/openbismantic_init
