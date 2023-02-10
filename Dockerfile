@@ -11,6 +11,3 @@ ADD ./OpenBISmantic-plugin ./core-plugins/openbismantic
 RUN echo 'enabled-modules = dropbox-monitor, dataset-uploader, dataset-file-search, xls-import, openbis-sync, eln-lims, openbis-ng-ui, search-store, openbismantic' > ./core-plugins/core-plugins.properties
 #add code to set admin password
 RUN sed -i '2s/^/#set admin password\necho "setting admin password"\n\/home\/openbis\/openbis\/servers\/openBIS-server\/jetty\/bin\/passwd.sh change -p ${ADMIN_PASS} admin\n /' /usr/local/bin/docker-entrypoint.sh 
-
-#ENTRYPOINT [ "/bin/bash" ]
-#ENTRYPOINT [ "./entrypoint.sh" ]
