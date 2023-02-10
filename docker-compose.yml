@@ -4,8 +4,6 @@ services:
     #build: .
     container_name: "openbis"
     image: ghcr.io/mat-o-lab/openbismantic:main #will be changed to latest
-    env_file: 
-      - .env
     environment:
       SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_SSL_PORT}"
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
