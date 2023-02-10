@@ -23,9 +23,9 @@ services:
       retries: 30
       start_period: 30s
   init_database:
-    build:
-      context: ./init_database
-      dockerfile: ./Dockerfile
+    # build:
+    #   context: ./init_database
+    #   dockerfile: ./Dockerfile
     container_name: init_database
     image: ghcr.io/mat-o-lab/openbismantic_init:main #will change to latest
     environment:
