@@ -3,7 +3,7 @@ services:
   openbis:
     #build: .
     container_name: "openbis"
-    image: ghcr.io/mat-o-lab/openbismatic:main #will be changed to latest
+    image: ghcr.io/mat-o-lab/openbismantic:main #will be changed to latest
     env_file: 
       - .env
     environment:
