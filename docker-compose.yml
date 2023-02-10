@@ -26,9 +26,9 @@ services:
       retries: 30
       start_period: 30s
   init_database:
-    # build:
-    #   context: ./init_database
-    #   dockerfile: ./Dockerfile
+    build:
+      context: ./init_database
+      dockerfile: ./Dockerfile
     container_name: init_database
     image: ghcr.io/mat-o-lab/openbismatic_init:main #will change to latest
     environment:
@@ -37,7 +37,7 @@ services:
     depends_on:
       openbis:
         condition: service_healthy
-    restart: "no"
+    restart: "on-failure"
     networks:
       - openbis_net
 networks:
