@@ -1,18 +1,23 @@
-FROM continuumio/miniconda3
+FROM python:3.9-slim
+
+RUN apt-get update && \
+    apt-get install -y \
+        build-essential \
+        make \
+        gcc
+
+#install requirements
+ADD ./requirements.pip /requirements.pip
+RUN pip install -r requirements.pip 
+
+#cleanup
+RUN apt-get remove -y --purge make gcc build-essential \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 ADD ./examples /examples
-
 WORKDIR /examples/LebeDigital
-
-# Make RUN commands use `bash --login`:
-SHELL ["/bin/bash", "--login", "-c"]
-
-RUN conda env create -f environment.yml
-# Activate the environment, and make sure it's activated:
-WORKDIR /
-# Initialize conda in bash config fiiles:
-RUN conda init bash
+ENV PYTHONPATH="${PYTHONPATH}:/examples/LebeDigital"
 
 ADD ./entrypoint.sh ./entrypoint.sh
-
 ENTRYPOINT [ "./entrypoint.sh" ]

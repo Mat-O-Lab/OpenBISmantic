@@ -15,9 +15,9 @@ ADMIN_PASS=<adminpassw>
 HOST_NAME=<fqurlofhost> (e.g., openbis.matolab.org)
 OPENBIS_PORT=<port> (e.g., 80)
 OPENBIS_SSL_PORT=<port> (e.g., 443)
+POSTGRES_PASSWORD=<postgrespassw>
 GROUP_NAME=<groupname> (e.g., matolab)
 GROUP_ID=<gid> (e.g., 12940)
-REPO_DIR=<lwd> (e.g., ~/OpenBISmantic)
 ```
 ## pull plugin submodule
 To clone the submodule:
