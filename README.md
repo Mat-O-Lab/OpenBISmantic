@@ -1,4 +1,5 @@
-# openBISmantic
+
+# openBISmantic [![Publish Docker image](https://github.com/Mat-O-Lab/OpenBISmantic/actions/workflows/PublishContainer.yml/badge.svg)](https://github.com/Mat-O-Lab/OpenBISmantic/actions/workflows/PublishContainer.yml)
 Demonstrator of a Export Mechanism for openBIS Data to Semantic Data.
 
 # Install
