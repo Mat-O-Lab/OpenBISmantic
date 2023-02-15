@@ -25,6 +25,9 @@ else
   exit 13;
 fi
 
+echo "initializing ELN settings"
+python /scripts/init_eln_settings.py
+
 echo "uploading data"
 # upload data
 cd /examples/LebeDigital/usecases/MinimumWorkingExample
