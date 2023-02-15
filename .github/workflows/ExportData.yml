@@ -1,0 +1,35 @@
+name: Docker Image CI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+env:
+  OPENBIS_USER: admin
+  OPENBIS_PASSWORD: ${{ secrets.OPENBIS_ADMIN_PASSWORD }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # - name: run app
+      #   run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      #   wait for openbis
+      - name: Update exported data
+        run: |
+          OPENBIS_V3='https://apps.iwm.fraunhofer.de/openbis/openbis/rmi-application-server-v3.json'
+          SAMPLE_IDENTIFIER='/EMODUL/LEBEDIGITAL/LEBEDIGITAL_EMODUL_COLLECTION/EMODUL2'
+          mkdir -p exported_data
+          token=$(curl -s -d "{\"method\": \"login\", \"params\": [\"${OPENBIS_USER}\", \"${OPENBIS_PASSWORD}\"], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" $OPENBIS_V3 | jq -r '.result')
+          echo "logged in with token $token" >&2
+          permId=$(curl -s -d "{\"method\": \"getSamples\", \"params\": [\"${token}\", [{\"identifier\": \"${SAMPLE_IDENTIFIER}\", \"@type\": \"as.dto.sample.id.SampleIdentifier\"}], {\"type\": {\"@type\": \"as.dto.sample.fetchoptions.SampleTypeFetchOptions\"}}], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" $OPENBIS_V3 | jq -r ".result[\"${SAMPLE_IDENTIFIER}\"].permId.permId")
+          echo "found permId ${permId}" >&2
+          result=$(curl -s -d "{\"method\": \"executeCustomASService\", \"params\": [\"${token}\", {\"@id\": 0, \"permId\": \"openbismantic-api\", \"@type\": \"as.dto.service.id.CustomASServiceCode\"}, {\"@id\": 0, \"parameters\": {\"method\": \"recursiveExport\", \"permID\": \"${permId}\"}, \"@type\": \"as.dto.service.CustomASServiceExecutionOptions\"}], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" $OPENBIS_V3 | jq -r '.result')
+          echo $result
+          echo $result > exported_data/emodul2.json
+      - name: commit results
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'update exported data'
+          add: '*.* --force'
+          cwd: './exported_data/'
