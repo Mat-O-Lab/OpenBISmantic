@@ -1,32 +1,52 @@
-name: Docker Image CI
+name: Export Data
 
 on:
   release:
     types: [published]
   workflow_dispatch:
 env:
-  OPENBIS_USER: admin
-  OPENBIS_PASSWORD: ${{ secrets.OPENBIS_ADMIN_PASSWORD }}
+  OPENBIS_V3: https://localhost:8128/openbis/openbis/rmi-application-server-v3.json
+  SAMPLE_TYPE: EXPERIMENTAL_STEP_EMODUL
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      # - name: run app
-      #   run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-      #   wait for openbis
+        with:
+          submodules: recursive
+      - name: run app
+        run: |
+          touch .env
+          echo ADMIN_PASS=example >> .env
+          echo HOST_NAME=127.0.0.1 >> .env
+          echo OPENBIS_PORT=8127 >> .env
+          echo POSTGRES_PASSWORD=example >> .env
+          echo GROUP_NAME=openbis >> .env
+          echo GROUP_ID=1000 >> .env
+          echo OPENBIS_SSL_PORT=8128 >> .env
+          docker-compose up -d
+          docker-compose logs -f init_database
+          docker-compose exec -t init_database sleep 10000
       - name: Update exported data
         run: |
-          OPENBIS_V3='https://apps.iwm.fraunhofer.de/openbis/openbis/rmi-application-server-v3.json'
-          SAMPLE_IDENTIFIER='/EMODUL/LEBEDIGITAL/LEBEDIGITAL_EMODUL_COLLECTION/EMODUL2'
+          rm -rf exported_data
           mkdir -p exported_data
-          token=$(curl -s -d "{\"method\": \"login\", \"params\": [\"${OPENBIS_USER}\", \"${OPENBIS_PASSWORD}\"], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" $OPENBIS_V3 | jq -r '.result')
-          echo "logged in with token $token" >&2
-          permId=$(curl -s -d "{\"method\": \"getSamples\", \"params\": [\"${token}\", [{\"identifier\": \"${SAMPLE_IDENTIFIER}\", \"@type\": \"as.dto.sample.id.SampleIdentifier\"}], {\"type\": {\"@type\": \"as.dto.sample.fetchoptions.SampleTypeFetchOptions\"}}], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" $OPENBIS_V3 | jq -r ".result[\"${SAMPLE_IDENTIFIER}\"].permId.permId")
-          echo "found permId ${permId}" >&2
-          result=$(curl -s -d "{\"method\": \"executeCustomASService\", \"params\": [\"${token}\", {\"@id\": 0, \"permId\": \"openbismantic-api\", \"@type\": \"as.dto.service.id.CustomASServiceCode\"}, {\"@id\": 0, \"parameters\": {\"method\": \"recursiveExport\", \"permID\": \"${permId}\"}, \"@type\": \"as.dto.service.CustomASServiceExecutionOptions\"}], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" $OPENBIS_V3 | jq -r '.result')
-          echo $result
-          echo $result > exported_data/emodul2.json
+          token=$(curl -sk -d "{\"method\": \"login\", \"params\": [\"admin\", \"example\"], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" ${{env.OPENBIS_V3}} | jq -r '.result')
+          if [[ $token == "null" ]]
+          then
+            echo "failed to log in"
+            exit 1
+          fi
+          echo "logged in successfully"
+          permIds=$(curl -sk -d "{\"method\":\"searchSamples\",\"params\":[\"${token}\",{\"@id\":0,\"criteria\":[{\"@id\":1,\"criteria\":[{\"@id\":2,\"fieldName\":\"code\",\"fieldType\":\"ATTRIBUTE\",\"fieldValue\":{\"@id\":3,\"value\":\"${{env.SAMPLE_TYPE}}\",\"@type\":\"as.dto.common.search.StringEqualToValue\"},\"useWildcards\":false,\"@type\":\"as.dto.common.search.CodeSearchCriteria\"}],\"@type\":\"as.dto.sample.search.SampleTypeSearchCriteria\",\"operator\":\"AND\"}],\"relation\":\"SAMPLE\",\"operator\":\"AND\",\"negated\":false,\"@type\":\"as.dto.sample.search.SampleSearchCriteria\"},{\"type\": {\"@type\": \"as.dto.sample.fetchoptions.SampleTypeFetchOptions\"}}],\"id\":\"1\",\"jsonrpc\":\"2.0\"}" ${{env.OPENBIS_V3}} | jq -r '[.result.objects[].permId.permId]|join(" ")')
+          echo "found samples ${permIds}"
+          for permId in $permIds
+          do
+            result=$(curl -sk -d "{\"method\": \"executeCustomASService\", \"params\": [\"${token}\", {\"@id\": 0, \"permId\": \"openbismantic-api\", \"@type\": \"as.dto.service.id.CustomASServiceCode\"}, {\"@id\": 0, \"parameters\": {\"method\": \"recursiveExport\", \"permID\": \"${permId}\"}, \"@type\": \"as.dto.service.CustomASServiceExecutionOptions\"}], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" ${{env.OPENBIS_V3}} | jq -r '.result')
+            filename=$(echo $result | jq -r ".[\"${permId}\"].identifier.identifier" | sed 's|^/||;s|/|_|g')
+            echo $result >> "exported_data/${filename}.json"
+          done
       - name: commit results
         uses: EndBug/add-and-commit@v9
         with:

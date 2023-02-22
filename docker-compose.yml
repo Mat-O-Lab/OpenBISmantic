@@ -1,7 +1,7 @@
 version: "3"
 services:
   openbis:
-    #build: .
+    # build: .
     container_name: "openbis"
     image: ghcr.io/mat-o-lab/openbismantic:main #will be changed to latest
     environment:
@@ -17,7 +17,7 @@ services:
     networks:
       - openbis_net
     healthcheck:
-      test: ["CMD", "curl", "-f","--insecure", "https://${HOST_NAME}:${OPENBIS_SSL_PORT}/openbis"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/openbis"]
       interval: 15s
       timeout: 10s
       retries: 30
@@ -29,7 +29,7 @@ services:
     container_name: init_database
     image: ghcr.io/mat-o-lab/openbismantic_init:main #will change to latest
     environment:
-      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_SSL_PORT}"
+      SERVER_HOST_PORT: "openbis:443"
       ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       openbis:
