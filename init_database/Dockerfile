@@ -15,6 +15,7 @@ RUN apt-get remove -y --purge make gcc build-essential \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
+ADD ./scripts /scripts
 ADD ./examples /examples
 WORKDIR /examples/LebeDigital
 ENV PYTHONPATH="${PYTHONPATH}:/examples/LebeDigital"
