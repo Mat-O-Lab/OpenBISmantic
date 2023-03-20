@@ -2,7 +2,10 @@
 # openBISmantic [![Publish Docker image](https://github.com/Mat-O-Lab/OpenBISmantic/actions/workflows/PublishContainer.yml/badge.svg)](https://github.com/Mat-O-Lab/OpenBISmantic/actions/workflows/PublishContainer.yml) ![Export Data](https://github.com/Mat-O-Lab/OpenBISmantic/actions/workflows/ExportData.yml/badge.svg)
 Demonstrator of a Export Mechanism for openBIS Data to Semantic Data.
 
+![newOpenBis](https://user-images.githubusercontent.com/9248325/226368114-b7ea7fee-3327-457c-88fe-479adf525213.png)
+
 # Install
+
 
 ## pull repository
 ```bash
