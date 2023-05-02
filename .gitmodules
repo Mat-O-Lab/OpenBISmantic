@@ -4,3 +4,6 @@
 [submodule "init_database/examples/LebeDigital"]
 	path = init_database/examples/LebeDigital
 	url = https://github.com/BAMresearch/LebeDigital
+[submodule "OpenBIS-Ontology"]
+	path = OpenBIS-Ontology
+	url = https://github.com/RasmusAntons/OpenBIS-Ontology.git
