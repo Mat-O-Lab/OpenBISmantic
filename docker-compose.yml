@@ -1,5 +1,22 @@
 version: "3"
 services:
+  nginx:
+    image: nginx:1.23
+    ports:
+      - ${OPENBIS_PORT}:80
+      - ${OPENBIS_SSL_PORT}:443
+    environment:
+      OPENBIS_SSL_PORT: ${OPENBIS_SSL_PORT}
+    volumes:
+      - ./nginx/entrypoint.sh:/entrypoint.sh:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs
+    entrypoint: /entrypoint.sh
+    networks:
+      - openbis_net
+    depends_on:
+      - openbis
+      - openbismantic_api
   openbis:
     # build: .
     container_name: "openbis"
@@ -10,9 +27,6 @@ services:
       ADMIN_PASS: ${ADMIN_PASS}
       GROUP_NAME: ${GROUP_NAME}
       GROUP_ID : ${GROUP_ID}
-    ports:
-      - ${OPENBIS_PORT}:8080
-      - ${OPENBIS_SSL_PORT}:443
     restart: always
     networks:
       - openbis_net
@@ -35,6 +49,16 @@ services:
       openbis:
         condition: service_healthy
     restart: "on-failure"
+    networks:
+      - openbis_net
+  openbismantic_api:
+    build:
+      context: ./openbismantic_api
+      dockerfile: ./Dockerfile
+    container_name: openbismantic_api
+    image: ghcr.io/mat-o-lab/openbismantic_api:main #will change to latest
+    volumes:
+      - ./openbismantic_api:/src
     networks:
       - openbis_net
 networks:
