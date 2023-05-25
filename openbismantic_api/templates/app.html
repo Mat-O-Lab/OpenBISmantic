@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<table>
+    <thead>
+    <tr>
+        <th>s</th>
+        <th>p</th>
+        <th>o</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for triple in onto %}
+        <tr>
+            {% for val in triple %}
+                {% if val.__class__.__name__ == 'URIRef' %}
+                    <td><a href="{{ val }}" target="_blank">{{ val }}</a></td>
+                {% elif val.__class__.__name__ == 'Literal' %}
+                    <td>{{ val }}</td>
+                {% else %}
+                    <td>Unknown type {{ val.__class__.__name__ }}</td>
+                {% endif %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
