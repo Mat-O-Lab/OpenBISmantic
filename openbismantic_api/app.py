@@ -46,6 +46,7 @@ class OpenBISmanticResponse(Response):
 @app.middleware('http')
 async def add_pybis_session(request: Request, call_next):
     bis = pybis.Openbis('https://openbis:443', verify_certificates=False)
+    bis.logout()
     auth_header = request.headers.get('authorization')
     accept_header = request.headers.get('accept', '').split(',')
     if auth_header is not None and ' ' in auth_header:
@@ -53,7 +54,7 @@ async def add_pybis_session(request: Request, call_next):
         if auth_type.lower() == 'basic':
             un, pw = base64.b64decode(auth_value).decode('utf-8').split(':')
             bis.login(un, pw)  # todo: catch exception?
-        elif auth_value.lower() == 'token':
+        elif auth_type.lower() == 'token':
             bis.__dict__['token'] = auth_value
     elif 'text/html' in accept_header:
         session_token = request.cookies.get('openbis')
@@ -64,7 +65,7 @@ async def add_pybis_session(request: Request, call_next):
         if 'text/html' in accept_header:
             return RedirectResponse(url='/openbis/webapp/eln-lims/')
         else:
-            return Response(status_code=401)
+            return Response('unauthorized', status_code=401)
     request.state.bis = bis
     response = await call_next(request)
     return response
