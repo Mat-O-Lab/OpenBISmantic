@@ -33,5 +33,5 @@ echo "uploading data"
 cd /examples/LebeDigital/usecases/MinimumWorkingExample
 echo "https://$SERVER_HOST_PORT/openbis/"
 ## doit runson=notactions url=https://openbis.matolab.org/openbis/ space=EMODUL user=admin force=yes mode=full # with password prompt
-doit runson=notactions url=https://$SERVER_HOST_PORT/openbis/ space=EMODUL user=admin pw=${ADMIN_PASS} force=yes mode=full
+doit runson=docker url=https://$SERVER_HOST_PORT/openbis/ space=EMODUL user=admin pw=${ADMIN_PASS} force=yes mode=full
 exit 0
