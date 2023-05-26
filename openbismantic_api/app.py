@@ -22,7 +22,7 @@ class OpenBISmanticResponse(Response):
         accept_header = request.headers.get('accept', '').split(',')
         if 'text/html' in accept_header:
             self.media_type = 'text/html'
-        elif 'application/turtle' in accept_header:
+        elif 'application/x-turtle' in accept_header:
             self.media_type = 'application/x-turtle'
         elif 'application/ld+json' in accept_header:
             self.media_type = 'application/ld+json'
@@ -37,7 +37,7 @@ class OpenBISmanticResponse(Response):
         export_format = {
             'application/x-turtle': 'turtle',
             'application/ld+json': 'json-ld'
-        }.get(self.media_type, 'turtle')
+        }.get(self.media_type, 'json-ld')
         write_ontology(onto, out_file, export_format)
         out_file.seek(0)
         return out_file.read()
