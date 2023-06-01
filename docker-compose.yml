@@ -59,6 +59,8 @@ services:
     image: ghcr.io/mat-o-lab/openbismantic_api:main #will change to latest
     volumes:
       - ./openbismantic_api:/src
+    environment:
+      BASE_URL: "https://${HOST_NAME}:${OPENBIS_SSL_PORT}"
     networks:
       - openbis_net
 networks:

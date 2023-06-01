@@ -1,5 +1,6 @@
 import base64
 import io
+import os
 
 from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
@@ -15,7 +16,7 @@ templates = Jinja2Templates(directory='templates')
 
 
 class OpenBISmanticResponse(Response):
-    media_type = 'application/x-turtle'
+    media_type = 'application/ld+json'
 
     def __init__(self, *args, request=None, **kwargs):
         self.request = request
@@ -26,17 +27,20 @@ class OpenBISmanticResponse(Response):
             self.media_type = 'application/x-turtle'
         elif 'application/ld+json' in accept_header:
             self.media_type = 'application/ld+json'
+        elif 'application/rdf+xml' in accept_header:
+            self.media_type = 'application/rdf+xml'
         super().__init__(*args, **kwargs)
 
     def render(self, content):
-        onto = parse_dict(content)
+        onto = parse_dict(content, base_url=os.environ.get('BASE_URL', None))
         if self.media_type == 'text/html':
             template = templates.get_template('app.html')
             return template.render({'request': self.request, 'onto': onto})
         out_file = io.BytesIO()
         export_format = {
             'application/x-turtle': 'turtle',
-            'application/ld+json': 'json-ld'
+            'application/ld+json': 'json-ld',
+            'application/rdf+xml': 'xml'
         }.get(self.media_type, 'json-ld')
         write_ontology(onto, out_file, export_format)
         out_file.seek(0)
@@ -76,11 +80,63 @@ async def index():
     return {'message': 'test'}
 
 
-@app.get('/sample/{perm_id}')
+@app.get('/object/{perm_id}')
 async def get_sample(perm_id: str, request: Request):
     bis: pybis.Openbis = request.state.bis
     try:
-        sample = bis.get_sample(perm_id)
+        sample = bis.get_sample(perm_id, only_data=True)
     except ValueError:
-        return Response('sample not found', status_code=404)
-    return OpenBISmanticResponse(sample.data, request=request)
+        return Response('object not found', status_code=404)
+    return OpenBISmanticResponse(sample, request=request)
+
+
+@app.get('/project/{perm_id}')
+async def get_project(perm_id: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    try:
+        req = bis._create_get_request(
+            "getProjects",
+            "project",
+            perm_id,
+            ["space", "registrator", "modifier", "attachments", "samples"],
+            "as.dto.project.fetchoptions.ProjectFetchOptions",
+        )
+        req['params'][2]['experiments'] = {'@type': 'as.dto.experiment.fetchoptions.ExperimentFetchOptions'}
+        res = bis._post_request(bis.as_v3, req)
+        project = res[perm_id]
+    except (ValueError, IndexError):
+        return Response('project not found', status_code=404)
+    return OpenBISmanticResponse(project, request=request)
+
+
+@app.get('/space/{perm_id}')
+async def get_space(perm_id: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    try:
+        req = {
+            "method": pybis.pybis.get_method_for_entity("space", "get"),
+            "params": [
+                bis.token,
+                [{"permId": perm_id, "@type": "as.dto.space.id.SpacePermId"}],
+                {
+                    "@type": "as.dto.space.fetchoptions.SpaceFetchOptions",
+                    "registrator": pybis.pybis.get_fetchoption_for_entity("registrator"),
+                    "projects": pybis.pybis.get_fetchoption_for_entity("project"),
+                },
+            ],
+        }
+        resp = bis._post_request(bis.as_v3, req)
+        space = resp[perm_id]
+    except (ValueError, IndexError):
+        return Response('space not found', status_code=404)
+    return OpenBISmanticResponse(space, request=request)
+
+
+@app.get('/user/{user_id}')
+async def get_user(user_id: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    try:
+        user = bis.get_person(user_id, only_data=True)
+    except ValueError:
+        return Response('user not found', status_code=404)
+    return OpenBISmanticResponse(user, request=request)
