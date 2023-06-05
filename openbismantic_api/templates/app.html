@@ -20,6 +20,8 @@
                     <td><a href="{{ val }}" target="_blank">{{ val }}</a></td>
                 {% elif val.__class__.__name__ == 'Literal' %}
                     <td>{{ val }}</td>
+                {% elif val.__class__.__name__ == 'BNode' %}
+                    <td>{{ val[:8] }}</td>
                 {% else %}
                     <td>Unknown type {{ val.__class__.__name__ }}</td>
                 {% endif %}

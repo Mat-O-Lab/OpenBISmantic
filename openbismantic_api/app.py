@@ -1,5 +1,6 @@
 import base64
 import io
+import json
 import os
 
 from fastapi import FastAPI, Request, Response
@@ -29,9 +30,13 @@ class OpenBISmanticResponse(Response):
             self.media_type = 'application/ld+json'
         elif 'application/rdf+xml' in accept_header:
             self.media_type = 'application/rdf+xml'
+        elif 'application/json' in accept_header:
+            self.media_type = 'application/json'
         super().__init__(*args, **kwargs)
 
     def render(self, content):
+        if self.media_type == 'application/json':
+            return json.dumps(content)
         onto = parse_dict(content, base_url=os.environ.get('BASE_URL', None))
         if self.media_type == 'text/html':
             template = templates.get_template('app.html')
@@ -81,13 +86,23 @@ async def index():
 
 
 @app.get('/object/{perm_id}')
-async def get_sample(perm_id: str, request: Request):
+async def get_object(perm_id: str, request: Request):
     bis: pybis.Openbis = request.state.bis
     try:
         sample = bis.get_sample(perm_id, only_data=True)
     except ValueError:
         return Response('object not found', status_code=404)
     return OpenBISmanticResponse(sample, request=request)
+
+
+@app.get('/collection/{perm_id}')
+async def get_collection(perm_id: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    try:
+        collection = bis.get_experiment(perm_id, only_data=True)
+    except ValueError:
+        return Response('collection not found', status_code=404)
+    return OpenBISmanticResponse(collection, request=request)
 
 
 @app.get('/project/{perm_id}')
@@ -98,7 +113,7 @@ async def get_project(perm_id: str, request: Request):
             "getProjects",
             "project",
             perm_id,
-            ["space", "registrator", "modifier", "attachments", "samples"],
+            ["space", "registrator", "modifier", "attachments"],
             "as.dto.project.fetchoptions.ProjectFetchOptions",
         )
         req['params'][2]['experiments'] = {'@type': 'as.dto.experiment.fetchoptions.ExperimentFetchOptions'}
