@@ -1,6 +1,3 @@
-[submodule "OpenBISmantic-plugin"]
-	path = OpenBISmantic-plugin
-	url = https://github.com/Mat-O-Lab/OpenBISmantic-plugin.git
 [submodule "init_database/examples/LebeDigital"]
 	path = init_database/examples/LebeDigital
 	url = https://github.com/BAMresearch/LebeDigital
