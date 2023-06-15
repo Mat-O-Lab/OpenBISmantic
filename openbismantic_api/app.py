@@ -54,7 +54,7 @@ class OpenBISmanticResponse(Response):
 
 @app.middleware('http')
 async def add_pybis_session(request: Request, call_next):
-    bis = pybis.Openbis('https://openbis:443', verify_certificates=False)
+    bis = pybis.Openbis('https://nginx:443', verify_certificates=False)
     bis.logout()
     auth_header = request.headers.get('authorization')
     accept_header = request.headers.get('accept', '').split(',')

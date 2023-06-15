@@ -43,7 +43,7 @@ services:
     container_name: init_database
     image: ghcr.io/mat-o-lab/openbismantic_init:main #will change to latest
     environment:
-      SERVER_HOST_PORT: "openbis:443"
+      SERVER_HOST_PORT: "nginx:443"
       ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       openbis:
