@@ -128,4 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+#nginx
+nginx/certs/*
+
 docker-compose.override.yml
