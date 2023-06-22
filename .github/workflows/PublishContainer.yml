@@ -25,6 +25,9 @@ jobs:
           - dockerfile: ./init_database/Dockerfile
             image: ghcr.io/mat-o-lab/openbismantic_init
             context: ./init_database
+          - dockerfile: ./openbismantic_api/Dockerfile
+            image: ghcr.io/mat-o-lab/openbismantic_api
+            context: ./openbismantic_api
     permissions:
       contents: read
       packages: write
