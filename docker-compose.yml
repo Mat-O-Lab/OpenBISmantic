@@ -18,8 +18,8 @@ services:
       - openbis
       - openbismantic_api
   openbis:
-    build: .
-    container_name: "openbis"
+    # build: .
+    # container_name: "openbis"
     image: ghcr.io/mat-o-lab/openbismantic:main #will be changed to latest
     environment:
       SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_SSL_PORT}"
@@ -37,9 +37,9 @@ services:
       retries: 30
       start_period: 30s
   init_database:
-    build:
-      context: ./init_database
-      dockerfile: ./Dockerfile
+    # build:
+    #   context: ./init_database
+    #   dockerfile: ./Dockerfile
     container_name: init_database
     image: ghcr.io/mat-o-lab/openbismantic_init:main #will change to latest
     environment:
@@ -52,9 +52,9 @@ services:
     networks:
       - openbis_net
   openbismantic_api:
-    build:
-      context: ./openbismantic_api
-      dockerfile: ./Dockerfile
+    # build:
+    #   context: ./openbismantic_api
+    #   dockerfile: ./Dockerfile
     container_name: openbismantic_api
     image: ghcr.io/mat-o-lab/openbismantic_api:main #will change to latest
     volumes:
