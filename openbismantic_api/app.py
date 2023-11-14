@@ -6,20 +6,23 @@ import os
 from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 import pybis
 from openbis_json_parser import parse_dict
 from openbis_json_parser.parser import write_ontology
 
 app = FastAPI(
     title='OpenBISmantic API',
+    root_path='/openbismantic/',
 )
 templates = Jinja2Templates(directory='templates')
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 class OpenBISmanticResponse(Response):
     media_type = 'application/ld+json'
 
-    def __init__(self, *args, request=None, **kwargs):
+    def __init__(self, *args, request=None, status_code=200, **kwargs):
         self.request = request
         accept_header = request.headers.get('accept', '').split(',')
         if 'text/html' in accept_header:
@@ -52,9 +55,23 @@ class OpenBISmanticResponse(Response):
         return out_file.read()
 
 
+default_responses = {
+    200: {
+        "description": "",
+        "content": {
+            "application/ld+json": {},
+            "application/x-turtle": {},
+            "application/rdf+xml": {},
+            "application/json": {},
+        }
+    }
+}
+
+
 @app.middleware('http')
 async def add_pybis_session(request: Request, call_next):
-    bis = pybis.Openbis('https://nginx:443', verify_certificates=False)
+    verify = not bool(os.environ.get('NO_VERIFY_CERTIFICATES', False))
+    bis = pybis.Openbis(os.environ.get('OPENBIS_URL'), verify_certificates=verify)
     bis.logout()
     auth_header = request.headers.get('authorization')
     accept_header = request.headers.get('accept', '').split(',')
@@ -65,11 +82,13 @@ async def add_pybis_session(request: Request, call_next):
             bis.login(un, pw)  # todo: catch exception?
         elif auth_type.lower() == 'token':
             bis.__dict__['token'] = auth_value
-    elif 'text/html' in accept_header:
+    else:
         session_token = request.cookies.get('openbis')
         if session_token is None or session_token == 'null':
-            return RedirectResponse(url='/openbis/webapp/eln-lims/')
-        bis.__dict__['token'] = session_token
+            if 'text/html' in accept_header:
+                return RedirectResponse(url='/openbis/webapp/eln-lims/')
+        else:
+            bis.__dict__['token'] = session_token
     if not bis.is_session_active():
         if 'text/html' in accept_header:
             return RedirectResponse(url='/openbis/webapp/eln-lims/')
@@ -81,11 +100,16 @@ async def add_pybis_session(request: Request, call_next):
 
 
 @app.get('/')
-async def index():
-    return {'message': 'test'}
+async def index(request: Request):
+    return templates.TemplateResponse('index.html', {'request': request})
 
 
-@app.get('/object/{perm_id}')
+@app.get('/test')
+async def index(request: Request):
+    return templates.TemplateResponse('index2.html', {'request': request})
+
+
+@app.get('/object/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
 async def get_object(perm_id: str, request: Request):
     bis: pybis.Openbis = request.state.bis
     try:
@@ -95,7 +119,7 @@ async def get_object(perm_id: str, request: Request):
     return OpenBISmanticResponse(sample, request=request)
 
 
-@app.get('/collection/{perm_id}')
+@app.get('/collection/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
 async def get_collection(perm_id: str, request: Request):
     bis: pybis.Openbis = request.state.bis
     try:
@@ -105,7 +129,7 @@ async def get_collection(perm_id: str, request: Request):
     return OpenBISmanticResponse(collection, request=request)
 
 
-@app.get('/project/{perm_id}')
+@app.get('/project/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
 async def get_project(perm_id: str, request: Request):
     bis: pybis.Openbis = request.state.bis
     try:
@@ -124,7 +148,32 @@ async def get_project(perm_id: str, request: Request):
     return OpenBISmanticResponse(project, request=request)
 
 
-@app.get('/space/{perm_id}')
+@app.get('/instance/', response_class=OpenBISmanticResponse, responses=default_responses)
+async def get_projects(request: Request):
+    bis: pybis.Openbis = request.state.bis
+    bis.get_spaces()
+    try:
+        req = {
+            "method": pybis.pybis.get_method_for_entity("space", "search"),
+            "params": [
+                bis.token,
+                pybis.pybis._subcriteria_for_code(None, "space"),
+                {
+                    "@type": "as.dto.space.fetchoptions.SpaceFetchOptions",
+                    "registrator": pybis.pybis.get_fetchoption_for_entity("registrator"),
+                    "projects": pybis.pybis.get_fetchoption_for_entity("project"),
+                },
+            ],
+        }
+        resp = bis._post_request(bis.as_v3, req)
+        spaces = resp['objects']
+        # server_info = bis.get_server_information()._info
+    except (ValueError, IndexError):
+        return Response('no spaces found', status_code=404)
+    return OpenBISmanticResponse(spaces, request=request)
+
+
+@app.get('/space/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
 async def get_space(perm_id: str, request: Request):
     bis: pybis.Openbis = request.state.bis
     try:
@@ -147,7 +196,7 @@ async def get_space(perm_id: str, request: Request):
     return OpenBISmanticResponse(space, request=request)
 
 
-@app.get('/user/{user_id}')
+@app.get('/user/{user_id}', response_class=OpenBISmanticResponse, responses=default_responses)
 async def get_user(user_id: str, request: Request):
     bis: pybis.Openbis = request.state.bis
     try:
@@ -155,3 +204,81 @@ async def get_user(user_id: str, request: Request):
     except ValueError:
         return Response('user not found', status_code=404)
     return OpenBISmanticResponse(user, request=request)
+
+
+@app.get('/class/{object_type_code}', response_class=OpenBISmanticResponse, responses=default_responses)  # todo: separate into to /object_type/ and /collection_type/ ?
+async def get_class(object_type_code: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    try:
+        object_type = bis.get_object_type(object_type_code, only_data=True)
+    except ValueError:
+        try:
+            object_type = bis.get_collection_type(object_type_code, only_data=True)
+        except ValueError:
+            return Response('object type not found', status_code=404)
+    return OpenBISmanticResponse(object_type, request=request)
+
+
+@app.get('/object_property/{property_type_code}', response_class=OpenBISmanticResponse, responses=default_responses)
+async def get_object_property(property_type_code: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    try:
+        property_type = bis.get_property_type(property_type_code, only_data=True)
+    except ValueError:
+        if not property_type_code.startswith('$'):
+            return await get_object_property('$' + property_type_code, request)
+        return Response('property type not found', status_code=404)
+    return OpenBISmanticResponse(property_type, request=request)
+
+
+@app.get('/search/', response_class=OpenBISmanticResponse, responses=default_responses)
+async def get_search_results(query: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    sample_fetch_options = pybis.pybis.get_fetchoption_for_entity('sample')
+    options = [
+        "tags",
+        "properties",
+        "attachments",
+        "space",
+        "experiment",
+        "registrator",
+        "modifier",
+        "dataSets",
+        "project",
+    ]
+    for option in options:
+        sample_fetch_options[option] = pybis.pybis.get_fetchoption_for_entity(option)
+    for key in ["parents", "children", "container", "components"]:
+        sample_fetch_options[key] = {"@type": "as.dto.sample.fetchoptions.SampleFetchOptions"}
+    print(f'{sample_fetch_options=}')
+    req = {
+        'method': 'searchGlobally',
+        'params': [
+            bis.token,
+            {
+                '@type': 'as.dto.global.search.GlobalSearchCriteria',
+                'criteria': {
+                    '@type': 'as.dto.global.search.GlobalSearchTextCriteria',
+                    'fieldName': 'anything',
+                    'fieldType': 'ANY_FIELD',
+                    'fieldValue': {
+                        '@type': 'as.dto.common.search.StringContainsValue',
+                        'value': query
+                    },
+                },
+                'operator': 'OR'
+            },
+            {
+                '@type': 'as.dto.global.fetchoptions.GlobalSearchObjectFetchOptions',
+                'sample': sample_fetch_options,
+                'experiment': pybis.pybis.get_fetchoption_for_entity('experiment'),
+            }
+        ]
+    }
+    resp = bis._post_request(bis.as_v3, req)
+    items = []
+    for obj in resp['objects']:
+        for key in ['sample', 'experiment', 'dataSet']:
+            if obj.get(key, None):
+                items.append(obj[key])
+    return OpenBISmanticResponse(items, request=request)
