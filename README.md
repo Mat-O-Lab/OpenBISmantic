@@ -19,6 +19,7 @@ cd OpenBISmantic
 ## create a .env file with
 ```bash
 ADMIN_PASS=<adminpassw>
+OBSERVER_PASS=<observerpassw>
 HOST_NAME=<fqurlofhost> (e.g., openbis.matolab.org)
 OPENBIS_PORT=<port> (e.g., 80)
 OPENBIS_SSL_PORT=<port> (e.g., 443)
