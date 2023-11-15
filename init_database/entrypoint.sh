@@ -28,6 +28,9 @@ fi
 echo "initializing ELN settings"
 python /scripts/init_eln_settings.py
 
+echo "creating observer user"
+python /scripts/create_observer.py
+
 echo "uploading data"
 # upload data
 cd /examples/LebeDigital/usecases/MinimumWorkingExample
