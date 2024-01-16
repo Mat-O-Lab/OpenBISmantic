@@ -101,12 +101,7 @@ async def add_pybis_session(request: Request, call_next):
 
 @app.get('/')
 async def index(request: Request):
-    return templates.TemplateResponse('index.html', {'request': request})
-
-
-@app.get('/test')
-async def index(request: Request):
-    return templates.TemplateResponse('index2.html', {'request': request})
+    return RedirectResponse(url='/openbismantic/ui/')
 
 
 @app.get('/object/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
