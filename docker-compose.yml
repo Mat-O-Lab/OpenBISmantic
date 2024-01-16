@@ -66,6 +66,19 @@ services:
       BASE_URL: "https://${HOST_NAME}:${OPENBIS_SSL_PORT}"
     networks:
       - openbis_net
+  openbismantic_ui:
+    build:
+      context: ./openbismantic_ui
+      dockerfile: ./Dockerfile
+      target: builder
+    volumes:
+      - ./openbismantic_ui:/app
+    container_name: openbismantic_ui
+    image: ghcr.io/mat-o-lab/openbismantic_ui:latest
+    environment:
+      OPENBISMANTIC_URL: "https://openbismantic_api:5000"
+    networks:
+      - openbis_net
 networks:
   openbis_net:
     name: openbis_net
