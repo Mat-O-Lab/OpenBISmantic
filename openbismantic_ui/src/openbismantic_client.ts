@@ -1,12 +1,15 @@
 import {graph, SPARQLToQuery, Store, parse, serialize} from "rdflib";
+import {DynamicFlatNode} from "./app/exporter/exporter.component";
 
 export class OpenbismanticClient {
   constructor() {
     this.store = graph();
+    this.getELNSettings().then(settings => {this.elnSettings = settings});
   }
 
   store: Store;
   resolvedIris = new Set();
+  elnSettings: {inventorySpaces: string[]}|null = null;
 
   async fetchUrl(url: URL) {
     if (this.resolvedIris.has(url)) {
@@ -60,6 +63,29 @@ export class OpenbismanticClient {
       expandable: this.openBISHierarchy.indexOf((new URL(res['?iri'].value)).pathname.split('/')[2]) < (this.openBISHierarchy.length - 1),
     })).sort((a, b) => a.name.localeCompare(b.name));
   }
+
+  async getELNSettings() {
+    await this.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
+    const queryString = 'SELECT ?settings ?iri WHERE {' +
+      '?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://xeo54:8128/openbismantic/class/GENERAL_ELN_SETTINGS>. ' +
+      '?iri <https://xeo54:8128/openbismantic/object_property/ELN_SETTINGS> ?settings.' +
+      '}';
+    const query = SPARQLToQuery(queryString, true, this.store);
+    if (query === false)
+      throw 'failed to create settings query';
+    const settings = JSON.parse(this.store.querySync(query)[0]['?settings']);
+    console.log(settings);
+    return settings;
+  }
+
+  isInventorySpace = (node: DynamicFlatNode) => {
+    if (node.level != 1)
+      return false;
+    if (!this.elnSettings)
+      return false;
+    const inventorySpaces = this.elnSettings.inventorySpaces;
+    return inventorySpaces.includes(node.item);
+  };
 
   exportInternalStore(format: string) {
     return serialize(null, this.store, undefined, format);

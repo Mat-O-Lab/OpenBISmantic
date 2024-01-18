@@ -91,7 +91,16 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
           return childSelected;
         }
         const nodes = res.map(item => new DynamicFlatNode(item.name, item.iri, node.level + 1, item.expandable, false, isChildSelected(item)));
-        console.log('nodes', nodes);
+        nodes.sort((a, b) => {
+          if (a.level == 1 && b.level == 1) {
+            const isAInventorySpace = this.openbismanticClient.isInventorySpace(a);
+            const isBInventorySpace = this.openbismanticClient.isInventorySpace(b);
+            if (isAInventorySpace != isBInventorySpace) {
+              return Number(isAInventorySpace) - Number(isBInventorySpace);
+            }
+          }
+          return a.item.localeCompare(b.item);
+        });
         this.data.splice(index + 1, 0, ...nodes);
         this.dataChange.next(this.data);
         node.isLoading = false;
@@ -168,7 +177,7 @@ export class ExporterComponent {
     this.openbismanticClient = new OpenbismanticClient();
     this.dataSource = new OpenBISDataSource(this.treeControl, this.openbismanticClient);
     this.dataSource.data = [
-      new DynamicFlatNode('instance', new URL('https://xeo54:8128/openbismantic/instance/'), 0, true)
+      new DynamicFlatNode('instance', new URL('/openbismantic/instance/', document.baseURI), 0, true)
     ];
   }
   openbismanticClient: OpenbismanticClient;
@@ -177,6 +186,7 @@ export class ExporterComponent {
   getLevel = (node: DynamicFlatNode) => node.level;
   isExpandable = (node: DynamicFlatNode) => node.expandable;
   hasChild = (_: number, _nodeData: DynamicFlatNode) => _nodeData.expandable;
+  isInventorySpace = (node: DynamicFlatNode) => this.openbismanticClient.isInventorySpace(node);
 
   toggleChecked = (node: DynamicFlatNode) => {
     const checkbox = document.querySelector(`input[data-iri="${node.iri}"]`) as HTMLInputElement;

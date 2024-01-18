@@ -226,6 +226,13 @@ async def get_object_property(property_type_code: str, request: Request):
     return OpenBISmanticResponse(property_type, request=request)
 
 
+@app.get('/eln_settings', response_class=OpenBISmanticResponse, responses=default_responses)
+async def get_eln_settings(request: Request):
+    bis: pybis.Openbis = request.state.bis
+    items = bis.get_object('/ELN_SETTINGS/GENERAL_ELN_SETTINGS', only_data=True)
+    return OpenBISmanticResponse(items, request=request)
+
+
 @app.get('/search/', response_class=OpenBISmanticResponse, responses=default_responses)
 async def get_search_results(query: str, request: Request):
     bis: pybis.Openbis = request.state.bis
