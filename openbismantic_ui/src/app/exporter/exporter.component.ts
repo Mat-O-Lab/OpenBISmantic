@@ -8,9 +8,15 @@ import {BehaviorSubject, map, merge, Observable} from 'rxjs';
 import {OpenbismanticClient} from "../../openbismantic_client";
 import {MatButtonModule} from "@angular/material/button";
 import {SPARQLToQuery} from "rdflib";
+import {NgOptimizedImage} from "@angular/common";
 
 // adapted from https://material.angular.io/components/tree/examples
 
+enum SelectionState {
+  NONE = 0,
+  INDETERMINATE = 1,
+  SELECTED = 2
+}
 
 export class DynamicFlatNode {
   constructor(
@@ -19,12 +25,13 @@ export class DynamicFlatNode {
     public level = 1,
     public expandable = false,
     public isLoading = false,
-  ) {
-  }
+    public selected: SelectionState = SelectionState.NONE,
+  ) { }
 }
 
 export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
   dataChange = new BehaviorSubject<DynamicFlatNode[]>([]);
+  selectedHiddenNodes = new Map<string, SelectionState>();
 
   get data(): DynamicFlatNode[] {
     return this.dataChange.value;
@@ -70,7 +77,21 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
       if (!node.iri)
         return;
       this.openbismanticClient.getChildren(node.iri).then(res => {
-        const nodes = res.map(item => new DynamicFlatNode(item.name, item.iri, node.level + 1, item.expandable));
+        const isChildSelected = (item: {iri?: URL}) => {
+          let childSelected = node.selected;
+          if (childSelected == SelectionState.INDETERMINATE) {
+            if (item.iri) {
+              const newChildSelected = this.selectedHiddenNodes.get(item.iri.href);
+              childSelected = newChildSelected !== undefined ? newChildSelected : SelectionState.NONE;
+              this.selectedHiddenNodes.delete(item.iri.href);
+            } else {
+              childSelected = SelectionState.NONE;
+            }
+          }
+          return childSelected;
+        }
+        const nodes = res.map(item => new DynamicFlatNode(item.name, item.iri, node.level + 1, item.expandable, false, isChildSelected(item)));
+        console.log('nodes', nodes);
         this.data.splice(index + 1, 0, ...nodes);
         this.dataChange.next(this.data);
         node.isLoading = false;
@@ -81,10 +102,50 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
         let i = index + 1;
         i < this.data.length && this.data[i].level > node.level;
         i++, count++
-      ) {}
+      ) {
+        if (node.selected == 1 && this.data[i].selected) {
+          const iri = this.data[i].iri;
+          if (iri != null)
+            this.selectedHiddenNodes.set(iri.href, this.data[i].selected);
+        }
+      }
       this.data.splice(index + 1, count);
       this.dataChange.next(this.data);
     }
+  }
+
+  getChildNodes(node: DynamicFlatNode) {
+    const index = this.data.indexOf(node);
+    let count = 0;
+    for (
+      let i = index + 1;
+      i < this.data.length && this.data[i].level > node.level;
+      ++i, ++count
+    ) {}
+    return this.data.slice(index + 1, index + 1 + count);
+  }
+
+  getParentNode(node: DynamicFlatNode) {
+    const index = this.data.indexOf(node);
+    for (let i = index - 1; i >= 0; --i) {
+      if (this.data[i].level < node.level)
+        return this.data[i];
+    }
+    return null;
+  }
+
+  getSiblingNodes(node: DynamicFlatNode) {
+    const index = this.data.indexOf(node);
+    const siblingNodes = [];
+    for (let i = index; i >=0 && this.data[i].level >= node.level; --i) {
+      if (this.data[i].level === node.level)
+        siblingNodes.push(this.data[i]);
+    }
+    for (let i = index + 1; i < this.data.length && this.data[i].level >= node.level; ++i) {
+      if (this.data[i].level === node.level)
+        siblingNodes.push(this.data[i]);
+    }
+    return siblingNodes;
   }
 }
 
@@ -95,7 +156,8 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
     MatTreeModule,
     MatIconModule,
     MatProgressBarModule,
-    MatButtonModule
+    MatButtonModule,
+    NgOptimizedImage
   ],
   templateUrl: './exporter.component.html',
   styleUrl: './exporter.component.scss'
@@ -115,6 +177,35 @@ export class ExporterComponent {
   getLevel = (node: DynamicFlatNode) => node.level;
   isExpandable = (node: DynamicFlatNode) => node.expandable;
   hasChild = (_: number, _nodeData: DynamicFlatNode) => _nodeData.expandable;
+
+  toggleChecked = (node: DynamicFlatNode) => {
+    const checkbox = document.querySelector(`input[data-iri="${node.iri}"]`) as HTMLInputElement;
+    if (checkbox.checked) {
+      node.selected = SelectionState.SELECTED;
+    } else {
+      node.selected = SelectionState.NONE;
+    }
+    for (let childNode of this.dataSource.getChildNodes(node)) {
+      childNode.selected = node.selected;
+    }
+
+    let parentNode: DynamicFlatNode|null = node;
+    while (parentNode) {
+      const siblingNodes = this.dataSource.getSiblingNodes(parentNode);
+      const siblingSelections = siblingNodes.map(siblingNode => siblingNode.selected);
+      const parentSelected = siblingSelections.every(status => status === SelectionState.SELECTED);
+      const parentIndeterminate = !parentSelected && siblingSelections.some(Boolean);
+      parentNode = this.dataSource.getParentNode(parentNode);
+      if (parentNode == null)
+        break;
+      if (parentSelected)
+        parentNode.selected = SelectionState.SELECTED;
+      else if (parentIndeterminate)
+        parentNode.selected = SelectionState.INDETERMINATE;
+      else
+        parentNode.selected = SelectionState.NONE;
+    }
+  }
 
   exportStore = () => {
     let rdflibFormat = 'application/x-turtle';

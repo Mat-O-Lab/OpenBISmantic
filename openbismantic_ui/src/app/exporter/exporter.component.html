@@ -2,6 +2,8 @@
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
     <button mat-icon-button disabled></button>
     {{node.item}}
+    <a class="icon-link ms-2" href="{{node.iri}}" target="_blank"><img class="icon" ngSrc="/assets/globe.svg" height="420" width="420"></a>
+    <input type="checkbox" (change)="toggleChecked(node)" [checked]="node.selected" [indeterminate]="node.selected == 1" [attr.data-iri]="node.iri" class="ms-2" />
   </mat-tree-node>
   <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
     <button mat-icon-button
@@ -11,10 +13,12 @@
       </mat-icon>
     </button>
     {{node.item}}
+    <a class="icon-link ms-2" href="{{node.iri}}" target="_blank"><img class="icon" ngSrc="/assets/globe.svg" height="420" width="420"></a>
+    <input type="checkbox" (change)="toggleChecked(node)" [checked]="node.selected" [indeterminate]="node.selected == 1" [attr.data-iri]="node.iri" class="ms-2" />
     @if (node.isLoading) {
       <mat-progress-bar
         mode="indeterminate"
-        class="example-tree-progress-bar"></mat-progress-bar>
+        class="example-tree-progress-bar ms-2 me-2"></mat-progress-bar>
     }
   </mat-tree-node>
 </mat-tree>
