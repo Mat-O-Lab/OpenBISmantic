@@ -1,4 +1,4 @@
-FROM docker.io/openbis/debian-openbis:latest
+FROM docker.io/openbis/debian-openbis:20.10.7.4
 
 WORKDIR /home/openbis/openbis/servers
 #setup behind proxy
