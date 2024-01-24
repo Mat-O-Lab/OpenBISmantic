@@ -248,7 +248,7 @@ export class ExporterComponent {
   }
 
   exportStore = (format = 'application/x-turtle', extension = 'ttl') => {
-    const data = this.openbismanticClient.exportInternalStore(format);
+    const data = this.openbismanticClient.export(format);
     if (!data)
       return;
     const a = document.createElement('a');
