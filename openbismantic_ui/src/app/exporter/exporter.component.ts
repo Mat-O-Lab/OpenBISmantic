@@ -27,6 +27,7 @@ export class DynamicFlatNode {
     public isLoading = false,
     public selected: SelectionState = SelectionState.NONE,
   ) { }
+  childNodes: DynamicFlatNode[]|undefined = undefined;
 }
 
 export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
@@ -101,6 +102,7 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
           }
           return a.item.localeCompare(b.item);
         });
+        node.childNodes = nodes;
         this.data.splice(index + 1, 0, ...nodes);
         this.dataChange.next(this.data);
         node.isLoading = false;
@@ -155,6 +157,25 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
         siblingNodes.push(this.data[i]);
     }
     return siblingNodes;
+  }
+
+
+  *getChecked(rootNode: DynamicFlatNode = this.data[0]): Generator<DynamicFlatNode> {
+    if (rootNode.selected === SelectionState.SELECTED)
+      yield rootNode;
+    else if (rootNode.childNodes) {
+      for (let childNode of rootNode.childNodes) {
+        switch (childNode.selected) {
+          case SelectionState.NONE:
+            break;
+          case SelectionState.SELECTED:
+            yield childNode;
+            break;
+          case SelectionState.INDETERMINATE:
+            yield* this.getChecked(childNode);
+        }
+      }
+    }
   }
 }
 
@@ -217,25 +238,33 @@ export class ExporterComponent {
     }
   }
 
-  exportStore = () => {
-    let rdflibFormat = 'application/x-turtle';
-    let ext = 'ttl';
-    const data = this.openbismanticClient.exportInternalStore(rdflibFormat);
+  loadSelected = async () => {
+    this.openbismanticClient.resetStore();
+    for (let selectedNode of this.dataSource.getChecked()) {
+      if (selectedNode.iri) {
+        await this.openbismanticClient.load(selectedNode.iri);
+      }
+    }
+  }
+
+  exportStore = (format = 'application/x-turtle', extension = 'ttl') => {
+    const data = this.openbismanticClient.exportInternalStore(format);
     if (!data)
       return;
     const a = document.createElement('a');
     a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
-    a.setAttribute('download', `openbismantic.${ext}`);
+    a.setAttribute('download', `openbismantic.${extension}`);
     a.click();
   }
+
   graphicQuery = () => {
     const outputElement = document.getElementById('query-output') as HTMLPreElement;
     const queryString = (document.getElementById('query-input') as HTMLTextAreaElement).value;
-    const query = SPARQLToQuery(queryString, true, this.openbismanticClient.store);
+    const query = SPARQLToQuery(queryString, true, this.openbismanticClient.internalStore);
     if (query === false) {
       outputElement.textContent = 'failed to create query';
     } else {
-      const res = this.openbismanticClient.store.querySync(query);
+      const res = this.openbismanticClient.internalStore.querySync(query);
       outputElement.textContent = '';
       for (let item of res) {
         for (let [key, entry] of Object.entries(item)) {

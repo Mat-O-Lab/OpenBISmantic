@@ -1,15 +1,12 @@
 import {graph, SPARQLToQuery, Store, parse, serialize} from "rdflib";
 import {DynamicFlatNode} from "./app/exporter/exporter.component";
 
-export class OpenbismanticClient {
+class OpenbismanticStore extends Store {
   constructor() {
-    this.store = graph();
-    this.getELNSettings().then(settings => {this.elnSettings = settings});
+    super();
   }
 
-  store: Store;
   resolvedIris = new Set();
-  elnSettings: {inventorySpaces: string[]}|null = null;
 
   async fetchUrl(url: URL) {
     if (this.resolvedIris.has(url)) {
@@ -19,13 +16,27 @@ export class OpenbismanticClient {
       let body = await res.text();
       const contentType = /*res.headers.get('content-type') ||*/ 'text/turtle';
       try {
-        parse(body, this.store, 'https://openbis.matolab.org/', contentType);
+        parse(body, this, 'https://openbis.matolab.org/', contentType);
         this.resolvedIris.add(url)
       } catch (e) {
+        console.error(`failed to load ${url}`);
         console.error(e);
+        console.error(contentType, body);
       }
     }
   }
+}
+
+export class OpenbismanticClient {
+  constructor() {
+    this.internalStore = new OpenbismanticStore();
+    this.store = new OpenbismanticStore();
+    this.getELNSettings().then(settings => {this.elnSettings = settings});
+  }
+
+  internalStore: OpenbismanticStore;
+  store: OpenbismanticStore;
+  elnSettings: {inventorySpaces: string[]}|null = null;
 
   capitalize(s: string) {
     return s[0].toUpperCase() + s.slice(1);
@@ -40,7 +51,7 @@ export class OpenbismanticClient {
     if (parentLevel >= 0 && parentLevel < (this.openBISHierarchy.length - 1)) {
       childType = this.openBISHierarchy[parentLevel + 1];
     } else {
-      throw `invalid parent type: ${parentType}`;
+      return null;
     }
     const terms = [];
     terms.push(`?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://purl.matolab.org/openbis/${this.capitalize(childType)}>; <https://purl.matolab.org/openbis/code> ?code.`);
@@ -49,15 +60,15 @@ export class OpenbismanticClient {
     return `SELECT ?iri ?code WHERE {${terms.join(' ')}}.`
   }
 
-  async getChildren(iri: URL) {
-    await this.fetchUrl(iri);
+  async getChildren(iri: URL, store: boolean = false) {
+    await (store ? this.store : this.internalStore).fetchUrl(iri);
     const queryString = this.childQueryBuilder(iri);
-    console.log(this.store, SPARQLToQuery);
-    console.log(queryString);
-    const query = SPARQLToQuery(queryString, true, this.store);
+    if (!queryString)
+      return [];
+    const query = SPARQLToQuery(queryString, true, this.internalStore);
     if (query === false)
       return [];
-    return this.store.querySync(query).map(res => ({
+    return (store ? this.store : this.internalStore).querySync(query).map(res => ({
       name: res['?code'].value,
       iri: new URL(res['?iri'].value),
       expandable: this.openBISHierarchy.indexOf((new URL(res['?iri'].value)).pathname.split('/')[2]) < (this.openBISHierarchy.length - 1),
@@ -65,15 +76,17 @@ export class OpenbismanticClient {
   }
 
   async getELNSettings() {
-    await this.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
+    await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
     const queryString = 'SELECT ?settings ?iri WHERE {' +
       '?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://xeo54:8128/openbismantic/class/GENERAL_ELN_SETTINGS>. ' +
-      '?iri <https://xeo54:8128/openbismantic/object_property/ELN_SETTINGS> ?settings.' +
+      '?iri <https://xeo54:8128/openbismantic/object_property/ELN_SETTINGS> ?b01. ' +
+      '?b01 <http://www.w3.org/ns/oa#hasLiteralBody> ?settings.' +
       '}';
-    const query = SPARQLToQuery(queryString, true, this.store);
+    console.log(queryString);
+    const query = SPARQLToQuery(queryString, true, this.internalStore);
     if (query === false)
       throw 'failed to create settings query';
-    const settings = JSON.parse(this.store.querySync(query)[0]['?settings']);
+    const settings = JSON.parse(this.internalStore.querySync(query)[0]['?settings']);
     console.log(settings);
     return settings;
   }
@@ -88,6 +101,26 @@ export class OpenbismanticClient {
   };
 
   exportInternalStore(format: string) {
+    return serialize(null, this.internalStore, undefined, format);
+  }
+
+  resetStore() {
+    this.store = new OpenbismanticStore();
+  }
+
+  export(format: string) {
     return serialize(null, this.store, undefined, format);
+  }
+
+  async load(...iris: URL[]) {
+    for (let iri of iris) {
+      const children = await this.getChildren(iri, true);
+      for (let child of children) {
+        const childIri = new URL(child.iri);
+        if (!iris.includes(childIri)) {
+          iris.push(childIri);
+        }
+      }
+    }
   }
 }

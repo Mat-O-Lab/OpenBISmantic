@@ -22,9 +22,24 @@
     }
   </mat-tree-node>
 </mat-tree>
+<div class="d-grid gap-2 m-3">
+  <button class="btn btn-primary" type="button" (click)="loadSelected()">Load selected</button>
+</div>
+<div>
+  <p>
+    {{openbismanticClient.store.statements.length}} triples loaded.
+  </p>
+</div>
+<div class="dropdown m-3">
+  <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">Export</button>
+  <div class="dropdown-menu">
+    <button class="dropdown-item" type="button" (click)="exportStore('application/x-turtle', 'ttl')">as turtle</button>
+    <button class="dropdown-item" type="button" (click)="exportStore('application/rdf+xml', 'xml')">as xml</button>
+    <button class="dropdown-item" type="button" (click)="exportStore('application/n-triples', 'nt')">as ntriples</button>
+  </div>
+</div>
 <div id="query" class="mt-5 mb-5">
   <textarea class="form-control" id="query-input">SELECT ?iri ?code WHERE {?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://purl.matolab.org/openbis/Space>; <https://purl.matolab.org/openbis/code> ?code.}.</textarea>
   <button (click)="graphicQuery()" type="submit" class="btn btn-primary float-end m-1">Query</button>
-  <button (click)="exportStore()" class="btn btn-secondary float-end m-1">Export</button>
   <pre class="form-control" id="query-output"></pre>
 </div>
