@@ -1,5 +1,9 @@
 import {graph, SPARQLToQuery, Store, parse, serialize} from "rdflib";
-import {DynamicFlatNode} from "./app/exporter/exporter.component";
+import {DynamicFlatNode, ExporterComponent} from "./app/exporter/exporter.component";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {LoginComponent} from "./app/login/login.component"
+
+class AuthError extends Error { }
 
 class OpenbismanticStore extends Store {
   constructor() {
@@ -13,6 +17,9 @@ class OpenbismanticStore extends Store {
       return;
     } else {
       let res = await fetch(url, {headers: {'Accept': 'application/x-turtle'}});
+      if (res.status === 401) {
+        throw new AuthError();
+      }
       let body = await res.text();
       const contentType = /*res.headers.get('content-type') ||*/ 'text/turtle';
       try {
@@ -31,7 +38,6 @@ export class OpenbismanticClient {
   constructor() {
     this.internalStore = new OpenbismanticStore();
     this.store = new OpenbismanticStore();
-    this.getELNSettings().then(settings => {this.elnSettings = settings});
   }
 
   internalStore: OpenbismanticStore;
@@ -40,6 +46,16 @@ export class OpenbismanticClient {
 
   capitalize(s: string) {
     return s[0].toUpperCase() + s.slice(1);
+  }
+
+  init(modalService: NgbModal) {
+    this.getELNSettings().then(settings => {this.elnSettings = settings}).catch(reason => {
+      const openModal = modalService.open(LoginComponent, {backdrop: 'static', keyboard: false});
+      openModal.componentInstance.await().then(() => {
+        openModal.close();
+        this.init(modalService);
+      });
+    });
   }
 
   openBISHierarchy = ['instance', 'space', 'project', 'collection', 'object'];
@@ -76,7 +92,13 @@ export class OpenbismanticClient {
   }
 
   async getELNSettings() {
-    await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
+    try {
+      await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
+    } catch (e) {
+      if (e instanceof AuthError) {
+        console.error('oops')
+      }
+    }
     const queryString = 'SELECT ?settings ?iri WHERE {' +
       '?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://xeo54:8128/openbismantic/class/GENERAL_ELN_SETTINGS>. ' +
       '?iri <https://xeo54:8128/openbismantic/object_property/ELN_SETTINGS> ?b01. ' +

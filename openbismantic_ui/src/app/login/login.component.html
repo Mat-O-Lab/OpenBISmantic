@@ -1,0 +1,17 @@
+<form id="login_form" (submit)="submit($event)" class="m-3">
+  <div class="form-group m-1">
+    <label for="login_user">User</label>
+    <input type="text" class="form-control" id="login_user" aria-describedby="emailHelp" placeholder="User" required>
+    <div class="invalid-feedback">Please enter your username.</div>
+  </div>
+  <div class="form-group m-1">
+    <label for="login_password">Password</label>
+    <input type="password" class="form-control" id="login_password" placeholder="Password" required>
+    <div class="invalid-feedback">Invalid Password.</div>
+  </div>
+  <div class="form-check m-1">
+    <input type="checkbox" class="form-check-input" id="login_set_cookie" checked>
+    <label class="form-check-label" for="login_set_cookie">Set Cookie</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
