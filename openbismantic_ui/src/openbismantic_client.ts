@@ -49,12 +49,16 @@ export class OpenbismanticClient {
   }
 
   init(modalService: NgbModal) {
-    this.getELNSettings().then(settings => {this.elnSettings = settings}).catch(reason => {
-      const openModal = modalService.open(LoginComponent, {backdrop: 'static', keyboard: false});
-      openModal.componentInstance.await().then(() => {
-        openModal.close();
-        this.init(modalService);
-      });
+    this.getELNSettings().then(settings => {this.elnSettings = settings}).catch(e => {
+      if (e instanceof AuthError) {
+        const openModal = modalService.open(LoginComponent, {backdrop: 'static', keyboard: false});
+        openModal.componentInstance.await().then(() => {
+          openModal.close();
+          this.init(modalService);
+        });
+      } else {
+        console.error(e);
+      }
     });
   }
 
@@ -92,18 +96,12 @@ export class OpenbismanticClient {
   }
 
   async getELNSettings() {
-    try {
-      await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
-    } catch (e) {
-      if (e instanceof AuthError) {
-        console.error('oops')
-      }
-    }
+    await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
     const queryString = 'SELECT ?settings ?iri WHERE {' +
-      '?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://xeo54:8128/openbismantic/class/GENERAL_ELN_SETTINGS>. ' +
-      '?iri <https://xeo54:8128/openbismantic/object_property/ELN_SETTINGS> ?b01. ' +
-      '?b01 <http://www.w3.org/ns/oa#hasLiteralBody> ?settings.' +
-      '}';
+        '?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://xeo54:8128/openbismantic/class/GENERAL_ELN_SETTINGS>. ' +
+        '?iri <https://xeo54:8128/openbismantic/object_property/ELN_SETTINGS> ?b01. ' +
+        '?b01 <http://www.w3.org/ns/oa#hasLiteralBody> ?settings.' +
+        '}';
     console.log(queryString);
     const query = SPARQLToQuery(queryString, true, this.internalStore);
     if (query === false)
