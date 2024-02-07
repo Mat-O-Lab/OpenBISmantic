@@ -28,6 +28,9 @@ jobs:
           - dockerfile: ./openbismantic_api/Dockerfile
             image: ghcr.io/mat-o-lab/openbismantic_api
             context: ./openbismantic_api
+          - dockerfile: ./openbismantic_ui/Dockerfile
+            image: ghcr.io/mat-o-lab/openbismantic_ui
+            context: ./openbismantic_ui
     permissions:
       contents: read
       packages: write
