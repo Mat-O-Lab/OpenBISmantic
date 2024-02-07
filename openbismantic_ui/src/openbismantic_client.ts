@@ -98,8 +98,8 @@ export class OpenbismanticClient {
   async getELNSettings() {
     await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
     const queryString = 'SELECT ?settings ?iri WHERE {' +
-        '?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://xeo54:8128/openbismantic/class/GENERAL_ELN_SETTINGS>. ' +
-        '?iri <https://xeo54:8128/openbismantic/object_property/ELN_SETTINGS> ?b01. ' +
+        `?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${document.baseURI}/openbismantic/class/GENERAL_ELN_SETTINGS>. ` +
+        `?iri <${document.baseURI}/openbismantic/object_property/ELN_SETTINGS> ?b01. ` +
         '?b01 <http://www.w3.org/ns/oa#hasLiteralBody> ?settings.' +
         '}';
     console.log(queryString);
