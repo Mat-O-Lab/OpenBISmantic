@@ -266,7 +266,7 @@ export class ExporterComponent {
     if (query === false) {
       outputElement.textContent = 'failed to create query';
     } else {
-      const res = this.openbismanticClient.internalStore.querySync(query);
+      const res = this.openbismanticClient.store.querySync(query);
       outputElement.textContent = '';
       for (let item of res) {
         for (let [key, entry] of Object.entries(item)) {
