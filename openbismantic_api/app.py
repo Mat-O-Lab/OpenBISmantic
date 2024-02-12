@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+import url_normalize
 import pybis
 from openbis_json_parser import parse_dict
 from openbis_json_parser.parser import write_ontology
@@ -40,7 +41,10 @@ class OpenBISmanticResponse(Response):
     def render(self, content):
         if self.media_type == 'application/json':
             return json.dumps(content)
-        onto = parse_dict(content, base_url=os.environ.get('BASE_URL', None))
+        base_url = os.environ.get('BASE_URL', None)
+        if base_url:
+            base_url = url_normalize.url_normalize(base_url)
+        onto = parse_dict(content, base_url=base_url)
         if self.media_type == 'text/html':
             template = templates.get_template('app.html')
             return template.render({'request': self.request, 'onto': onto})

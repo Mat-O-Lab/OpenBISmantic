@@ -3,3 +3,4 @@ uvicorn==0.24.0.post1
 PyBIS==1.36.3
 Jinja2==3.1.2
 openbis_json_parser @ git+https://github.com/Mat-O-Lab/OpenBIS-Ontology.git@6658673
+url-normalize==1.4.3
