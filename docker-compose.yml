@@ -63,7 +63,7 @@ services:
     environment:
       OPENBIS_URL: "https://${HOST_NAME}:${OPENBIS_SSL_PORT}"
       NO_VERIFY_CERTIFICATES: 1
-      BASE_URL: "https://${HOST_NAME}:${OPENBIS_SSL_PORT}"
+      BASE_URL: ${OPENBISMANTIC_URL}
     networks:
       - openbis_net
   openbismantic_ui:
@@ -76,7 +76,7 @@ services:
     container_name: openbismantic_ui
     image: ghcr.io/mat-o-lab/openbismantic_ui:latest
     environment:
-      OPENBISMANTIC_URL: "https://openbismantic_api:5000"
+      OPENBISMANTIC_URL: ${OPENBISMANTIC_URL}
     networks:
       - openbis_net
 networks:

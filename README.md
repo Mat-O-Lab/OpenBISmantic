@@ -26,6 +26,7 @@ OPENBIS_SSL_PORT=<port> (e.g., 443)
 POSTGRES_PASSWORD=<postgrespassw>
 GROUP_NAME=<groupname> (e.g., matolab)
 GROUP_ID=<gid> (e.g., 12940)
+OPENBISMANTIC_URL=<url> (e.g., https://openbis.matolab.org)
 ```
 
 ## run server

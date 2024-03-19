@@ -35,7 +35,8 @@ class OpenbismanticStore extends Store {
 }
 
 export class OpenbismanticClient {
-  constructor() {
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
     this.internalStore = new OpenbismanticStore();
     this.store = new OpenbismanticStore();
   }
@@ -43,6 +44,7 @@ export class OpenbismanticClient {
   internalStore: OpenbismanticStore;
   store: OpenbismanticStore;
   elnSettings: {inventorySpaces: string[]}|null = null;
+  baseURL: string;
 
   capitalize(s: string) {
     return s[0].toUpperCase() + s.slice(1);
@@ -96,10 +98,10 @@ export class OpenbismanticClient {
   }
 
   async getELNSettings() {
-    await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', document.baseURI));
+    await this.internalStore.fetchUrl(new URL('/openbismantic/eln_settings', this.baseURL));
     const queryString = 'SELECT ?settings ?iri WHERE {' +
-        `?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${document.baseURI}/openbismantic/class/GENERAL_ELN_SETTINGS>. ` +
-        `?iri <${document.baseURI}/openbismantic/object_property/ELN_SETTINGS> ?b01. ` +
+        `?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${this.baseURL}/openbismantic/class/GENERAL_ELN_SETTINGS>. ` +
+        `?iri <${this.baseURL}/openbismantic/object_property/ELN_SETTINGS> ?b01. ` +
         '?b01 <http://www.w3.org/ns/oa#hasLiteralBody> ?settings.' +
         '}';
     console.log(queryString);
