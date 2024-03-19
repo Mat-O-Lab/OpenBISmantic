@@ -10,6 +10,7 @@ import {MatButtonModule} from "@angular/material/button";
 import {SPARQLToQuery} from "rdflib";
 import {NgOptimizedImage} from "@angular/common";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {ConfigService} from "../../config.service";
 
 // adapted from https://material.angular.io/components/tree/examples
 
@@ -194,13 +195,13 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
   styleUrl: './exporter.component.scss'
 })
 export class ExporterComponent {
-  constructor(public modalService: NgbModal) {
+  constructor(public modalService: NgbModal, private configService: ConfigService) {
     this.treeControl = new FlatTreeControl<DynamicFlatNode>(this.getLevel, this.isExpandable);
-    this.openbismanticClient = new OpenbismanticClient();
+    this.openbismanticClient = new OpenbismanticClient(this.configService.config.OPENBISMANTIC_URL);
     this.openbismanticClient.init(modalService);
     this.dataSource = new OpenBISDataSource(this.treeControl, this.openbismanticClient);
     this.dataSource.data = [
-      new DynamicFlatNode('instance', new URL('/openbismantic/instance/', document.baseURI), 0, true)
+      new DynamicFlatNode('instance', new URL('/openbismantic/instance/', this.configService.config.OPENBISMANTIC_URL), 0, true)
     ];
   }
   openbismanticClient: OpenbismanticClient;
