@@ -27,9 +27,9 @@ jobs:
           echo GROUP_NAME=openbis >> .env
           echo GROUP_ID=1000 >> .env
           echo OPENBIS_SSL_PORT=8128 >> .env
-          docker-compose up -d
-          docker-compose logs -f init_database
-          docker-compose exec -t init_database sleep 10000
+          docker compose up -d
+          docker compose logs -f init_database
+          docker compose exec -t init_database sleep 10000
       - name: Update exported data
         run: |
           rm -rf exported_data
