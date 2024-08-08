@@ -28,7 +28,7 @@ jobs:
           echo POSTGRES_PASSWORD=example >> .env
           echo GROUP_NAME=openbis >> .env
           echo GROUP_ID=1000 >> .env
-          echo OPENBISMANTIC_URL=https://openbis.matolab.orf >> .env
+          echo OPENBISMANTIC_URL=https://openbis.matolab.org >> .env
           docker compose up -d
           docker compose logs -f init_database
           docker compose exec -t init_database sleep 10000
