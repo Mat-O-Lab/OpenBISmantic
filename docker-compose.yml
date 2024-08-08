@@ -44,7 +44,7 @@ services:
     container_name: init_database
     image: ghcr.io/mat-o-lab/openbismantic_init:latest #will change to latest
     environment:
-      SERVER_HOST_PORT: "${HOST_NAME}:${OPENBIS_SSL_PORT}"
+      SERVER_HOST_PORT: "nginx:443"
       ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       openbis:
@@ -61,7 +61,7 @@ services:
     volumes:
       - ./openbismantic_api:/src
     environment:
-      OPENBIS_URL: "https://${HOST_NAME}:${OPENBIS_SSL_PORT}"
+      OPENBIS_URL: "https://nginx:443"
       NO_VERIFY_CERTIFICATES: 1
       BASE_URL: ${OPENBISMANTIC_URL}
     networks:
