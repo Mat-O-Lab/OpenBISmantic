@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 env:
   OPENBIS_V3: https://localhost:8128/openbis/openbis/rmi-application-server-v3.json
+  OPENBISMANTIC_API: https://localhost:8128/openbismantic
   SAMPLE_TYPE: EXPERIMENTAL_STEP_EMODUL
 
 jobs:
@@ -46,9 +47,8 @@ jobs:
           echo "found samples ${permIds}"
           for permId in $permIds
           do
-            result=$(curl -sk -d "{\"method\": \"executeCustomASService\", \"params\": [\"${token}\", {\"@id\": 0, \"permId\": \"openbismantic-api\", \"@type\": \"as.dto.service.id.CustomASServiceCode\"}, {\"@id\": 0, \"parameters\": {\"method\": \"recursiveExport\", \"permID\": \"${permId}\"}, \"@type\": \"as.dto.service.CustomASServiceExecutionOptions\"}], \"id\": \"1\", \"jsonrpc\": \"2.0\"}" ${{env.OPENBIS_V3}} | jq -r '.result')
-            filename=$(echo $result | jq -r ".[\"${permId}\"].identifier.identifier" | sed 's|^/||;s|/|_|g')
-            echo $result >> "exported_data/${filename}.json"
+            result=$(curl -sk -H "Cookie: openbis=${token}" "${{env.OPENBISMANTIC_API}}/object/${permId}")
+            echo $result >> "exported_data/${permId}.json"
           done
       - name: commit results
         uses: EndBug/add-and-commit@v9
