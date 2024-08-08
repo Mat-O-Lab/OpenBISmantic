@@ -21,12 +21,14 @@ jobs:
         run: |
           touch .env
           echo ADMIN_PASS=example >> .env
+          echo OBSERVER_PASS=example >> .env
           echo HOST_NAME=127.0.0.1 >> .env
           echo OPENBIS_PORT=8127 >> .env
+          echo OPENBIS_SSL_PORT=8128 >> .env
           echo POSTGRES_PASSWORD=example >> .env
           echo GROUP_NAME=openbis >> .env
           echo GROUP_ID=1000 >> .env
-          echo OPENBIS_SSL_PORT=8128 >> .env
+          echo OPENBISMANTIC_URL=https://openbis.matolab.orf >> .env
           docker compose up -d
           docker compose logs -f init_database
           docker compose exec -t init_database sleep 10000
