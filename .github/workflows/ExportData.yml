@@ -47,8 +47,7 @@ jobs:
           echo "found samples ${permIds}"
           for permId in $permIds
           do
-            result=$(curl -sk -H "Cookie: openbis=${token}" -H 'accept: application/x-turtle' "${{env.OPENBISMANTIC_API}}/object/${permId}")
-            echo $result >> "exported_data/${permId}.ttl"
+            curl -sk -H "Cookie: openbis=${token}" -H 'accept: application/x-turtle' "${{env.OPENBISMANTIC_API}}/object/${permId}" -o "exported_data/${permId}.ttl"
           done
       - name: commit results
         uses: EndBug/add-and-commit@v9
