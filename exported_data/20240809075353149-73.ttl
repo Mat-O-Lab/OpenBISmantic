@@ -1,0 +1,185 @@
+@prefix class: <https://openbis.matolab.org/openbismantic/class/> .
+@prefix collection: <https://openbis.matolab.org/openbismantic/collection/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
+@prefix obis: <https://purl.matolab.org/openbis/> .
+@prefix object: <https://openbis.matolab.org/openbismantic/object/> .
+@prefix object_property: <https://openbis.matolab.org/openbismantic/object_property/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix project: <https://openbis.matolab.org/openbismantic/project/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix space: <https://openbis.matolab.org/openbismantic/space/> .
+@prefix user: <https://openbis.matolab.org/openbismantic/user/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---DIAMETER a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.DIAMETER" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---DIAMETER ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---EXPERIMENTNAME a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.EXPERIMENTNAME" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---EXPERIMENTNAME ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---LENGTH a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.LENGTH" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---LENGTH ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---LENGTH_UNIT a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.LENGTH_UNIT" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---LENGTH_UNIT ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---OPERATOR_TIMESTAMP a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.OPERATOR_TIMESTAMP" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---OPERATOR_TIMESTAMP ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---REMARK a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.REMARK" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---REMARK ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---SOFTWARE_SPECIFICATION a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.SOFTWARE_SPECIFICATION" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---SOFTWARE_SPECIFICATION ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---SPECIMEN_NAME a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.SPECIMEN_NAME" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---SPECIMEN_NAME ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---WEIGHT a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.WEIGHT" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---WEIGHT ] .
+
+object_property:EXPERIMENTAL_STEP_EMODUL---WEIGHT_UNIT a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL.WEIGHT_UNIT" ;
+            obis:is_identifier_of object_property:EXPERIMENTAL_STEP_EMODUL---WEIGHT_UNIT ] .
+
+object_property:NAME a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "NAME" ;
+            obis:is_identifier_of object_property:NAME ] .
+
+object_property:OPERATOR_DATE a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "OPERATOR_DATE" ;
+            obis:is_identifier_of object_property:OPERATOR_DATE ] .
+
+object_property:TESTER_NAME a owl:ObjectProperty ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "TESTER_NAME" ;
+            obis:is_identifier_of object_property:TESTER_NAME ] .
+
+class:COLLECTION a owl:Class ;
+    dcterms:modified "2024-08-09T07:51:38.869000"^^xsd:dateTimeStamp ;
+    rdfs:subClassOf obis:Collection ;
+    obis:code "COLLECTION" ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "COLLECTION" ;
+            obis:is_identifier_of class:COLLECTION ] .
+
+class:EXPERIMENTAL_STEP_EMODUL a owl:Class ;
+    dcterms:modified "2024-08-09T07:52:05.664000"^^xsd:dateTimeStamp ;
+    rdfs:subClassOf obis:Object ;
+    obis:code "EXPERIMENTAL_STEP_EMODUL" ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EXPERIMENTAL_STEP_EMODUL" ;
+            obis:is_identifier_of class:EXPERIMENTAL_STEP_EMODUL ] .
+
+object:20240809075353149-73 a class:EXPERIMENTAL_STEP_EMODUL,
+        obis:Object ;
+    dc:creator user:admin ;
+    dcterms:contributor user:admin ;
+    dcterms:created "2024-08-09T07:53:53.149000"^^xsd:dateTimeStamp ;
+    dcterms:modified "2024-08-09T07:53:53.149000"^^xsd:dateTimeStamp ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---DIAMETER [ a qudt:QuantityValue ;
+            qudt:value 1.004e+02 ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---EXPERIMENTNAME [ a oa:Annotation ;
+            oa:hasLiteralBody "Maack 8.2 Drucklversuch Probe B2B2"^^xsd:string ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---LENGTH [ a qudt:QuantityValue ;
+            qudt:value 1.991e+02 ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---LENGTH_UNIT [ a oa:Annotation ;
+            oa:hasLiteralBody "MM"^^xsd:string ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---OPERATOR_TIMESTAMP [ ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---REMARK [ a oa:Annotation ;
+            oa:hasLiteralBody "Kraftgeregelt 3,9 kN/s"^^xsd:string ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---SOFTWARE_SPECIFICATION [ a oa:Annotation ;
+            oa:hasLiteralBody "MTS793|MPT|DEU|1|2|,|.|:|49|1|1|A"^^xsd:string ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---SPECIMEN_NAME [ a oa:Annotation ;
+            oa:hasLiteralBody "Maack 8.2 Drucklversuch Probe B2B2"^^xsd:string ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---WEIGHT [ a qudt:QuantityValue ;
+            qudt:value 3.7859e+03 ] ;
+    object_property:EXPERIMENTAL_STEP_EMODUL---WEIGHT_UNIT [ a oa:Annotation ;
+            oa:hasLiteralBody "G"^^xsd:string ] ;
+    object_property:NAME [ a oa:Annotation ;
+            oa:hasLiteralBody "Maack 8.2 Drucklversuch Probe B2B2"^^xsd:string ] ;
+    object_property:OPERATOR_DATE [ ] ;
+    object_property:TESTER_NAME [ a oa:Annotation ;
+            oa:hasLiteralBody "Kh"^^xsd:string ] ;
+    obis:code "EMODUL47" ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "20240809075353149-73" ;
+            obis:is_identifier_of object:20240809075353149-73 ],
+        [ a obis:Identifier ;
+            rdf:value "/EMODUL/LEBEDIGITAL/EMODUL47" ;
+            obis:is_identifier_of object:20240809075353149-73 ] ;
+    obis:relates_to collection:20240809075209834-25,
+        project:20240809075209346-23,
+        space:EMODUL .
+
+collection:20240809075209834-25 a class:COLLECTION,
+        obis:Collection ;
+    dcterms:created "2024-08-09T07:52:09.834000"^^xsd:dateTimeStamp ;
+    dcterms:modified "2024-08-09T07:54:12.032000"^^xsd:dateTimeStamp ;
+    obis:code "LEBEDIGITAL_EMODUL_COLLECTION" ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "20240809075209834-25" ;
+            obis:is_identifier_of collection:20240809075209834-25 ],
+        [ a obis:Identifier ;
+            rdf:value "/EMODUL/LEBEDIGITAL/LEBEDIGITAL_EMODUL_COLLECTION" ;
+            obis:is_identifier_of collection:20240809075209834-25 ] .
+
+project:20240809075209346-23 a obis:Project ;
+    dcterms:created "2024-08-09T07:52:09.346000"^^xsd:dateTimeStamp ;
+    dcterms:modified "2024-08-09T07:54:12.032000"^^xsd:dateTimeStamp ;
+    rdfs:comment "Project for Emodul samples" ;
+    obis:code "LEBEDIGITAL" ;
+    obis:has_identifier [ a obis:Identifier ;
+            rdf:value "/EMODUL/LEBEDIGITAL" ;
+            obis:is_identifier_of project:20240809075209346-23 ],
+        [ a obis:PermanentIdentifier ;
+            rdf:value "20240809075209346-23" ;
+            obis:is_identifier_of project:20240809075209346-23 ] ;
+    obis:relates_to space:EMODUL .
+
+space:EMODUL a obis:Space ;
+    dcterms:created "2024-08-09T07:52:09.190000"^^xsd:dateTimeStamp ;
+    dcterms:modified "2024-08-09T07:52:09.190000"^^xsd:dateTimeStamp ;
+    rdfs:comment "Space for Emodul samples" ;
+    obis:code "EMODUL" ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "EMODUL" ;
+            obis:is_identifier_of space:EMODUL ] .
+
+user:admin a obis:User ;
+    dcterms:created "2024-08-09T07:51:51.546000"^^xsd:dateTimeStamp ;
+    obis:has_identifier [ a obis:PermanentIdentifier ;
+            rdf:value "admin" ;
+            obis:is_identifier_of user:admin ] .
+
+[] a qudt:QuantityValue ;
+    qudt:value "2014-07-22T00:00:00+00:00"^^xsd:dateTime .
+
+[] a qudt:QuantityValue ;
+    qudt:value "2024-08-09T07:09:17"^^xsd:dateTime .
+
