@@ -9,6 +9,8 @@ from starlette.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import url_normalize
 import pybis
+import pybis.dataset
+import urllib.parse
 from openbis_json_parser import parse_dict
 from openbis_json_parser.parser import write_ontology
 
@@ -116,6 +118,53 @@ async def get_object(perm_id: str, request: Request):
     except ValueError:
         return Response('object not found', status_code=404)
     return OpenBISmanticResponse(sample, request=request)
+
+
+@app.get('/dataset/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
+async def get_dataset(perm_id: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    try:
+        dataset = bis.get_dataset(perm_id, only_data=True)
+
+        search_criteria = pybis.pybis.get_type_for_entity("dataSetFile", "search")
+        search_criteria["operator"] = "AND"
+        search_criteria["criteria"] = [
+            {
+                "criteria": [
+                    {
+                        "fieldName": "code",
+                        "fieldType": "ATTRIBUTE",
+                        "fieldValue": {
+                            "value": perm_id,
+                            "@type": "as.dto.common.search.StringEqualToValue",
+                        },
+                        "@type": "as.dto.common.search.CodeSearchCriteria",
+                    }
+                ],
+                "operator": "OR",
+                "@type": "as.dto.dataset.search.DataSetSearchCriteria",
+            }
+        ]
+        fetchopts = pybis.pybis.get_fetchoption_for_entity("dataSetFile")
+        file_req = {
+            "method": "searchFiles",
+            "params": [
+                bis.token,
+                search_criteria,
+                fetchopts,
+            ],
+        }
+        if "downloadUrl" in dataset["dataStore"]:
+            download_url = dataset["dataStore"]["downloadUrl"]
+        else:
+            datastores = bis.get_datastores()
+            download_url = datastores["downloadUrl"][0]
+        full_url = urllib.parse.urljoin(download_url, pybis.dataset.DSS_ENDPOINT)
+        files = bis._post_request_full_url(full_url, file_req)
+        dataset['files'] = files
+    except ValueError:
+        return Response('dataset not found', status_code=404)
+    return OpenBISmanticResponse(dataset, request=request)
 
 
 @app.get('/collection/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
