@@ -5,14 +5,17 @@ import os
 
 from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+import rdflib
 import url_normalize
 import pybis
 import pybis.dataset
 import urllib.parse
-from openbis_json_parser import parse_dict
-from openbis_json_parser.parser import write_ontology
+from openbis_json_parser import parse_dict, write_ontology
+
+from models import ExportRequest
+from export_bundle import export_from_graph
 
 app = FastAPI(
     title='OpenBISmantic API',
@@ -42,7 +45,7 @@ class OpenBISmanticResponse(Response):
 
     def render(self, content):
         if self.media_type == 'application/json':
-            return json.dumps(content)
+            return json.dumps(content).encode('utf-8')
         base_url = os.environ.get('BASE_URL', None)
         if base_url:
             base_url = url_normalize.url_normalize(base_url)
@@ -120,9 +123,7 @@ async def get_object(perm_id: str, request: Request):
     return OpenBISmanticResponse(sample, request=request)
 
 
-@app.get('/dataset/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
-async def get_dataset(perm_id: str, request: Request):
-    bis: pybis.Openbis = request.state.bis
+def _get_dataset(bis: pybis.Openbis, perm_id: str):
     try:
         dataset = bis.get_dataset(perm_id, only_data=True)
 
@@ -162,9 +163,30 @@ async def get_dataset(perm_id: str, request: Request):
         full_url = urllib.parse.urljoin(download_url, pybis.dataset.DSS_ENDPOINT)
         files = bis._post_request_full_url(full_url, file_req)
         dataset['files'] = files
+        return dataset
     except ValueError:
+        return None
+
+@app.get('/dataset/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
+async def get_dataset(perm_id: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    dataset = _get_dataset(bis, perm_id)
+    if dataset is None:
         return Response('dataset not found', status_code=404)
     return OpenBISmanticResponse(dataset, request=request)
+
+
+@app.get('/distribution/{perm_id}/{path:path}', response_class=OpenBISmanticResponse, responses=default_responses)
+async def get_distribution(perm_id: str, path: str, request: Request):
+    bis: pybis.Openbis = request.state.bis
+    dataset = _get_dataset(bis, perm_id)
+    if dataset is None:
+        return Response('dataset not found', status_code=404)
+    try:
+        requested_file = next(filter(lambda f: f.get('path') == path, dataset['files']['objects']))
+    except StopIteration:
+        return Response('distribution not found', status_code=404)
+    return OpenBISmanticResponse(requested_file, request=request)
 
 
 @app.get('/collection/{perm_id}', response_class=OpenBISmanticResponse, responses=default_responses)
@@ -277,6 +299,15 @@ async def get_object_property(property_type_code: str, request: Request):
             return await get_object_property('$' + property_type_code, request)
         return Response('property type not found', status_code=404)
     return OpenBISmanticResponse(property_type, request=request)
+
+
+@app.post('/export_bundle')
+async def post_export_bundle(request: Request, export_request: ExportRequest):
+    bis: pybis.Openbis = request.state.bis
+    g = rdflib.Graph()
+    g.parse(data=json.dumps(export_request.graph), format='application/ld+json')
+    zb = export_from_graph(bis, g)
+    return StreamingResponse(content=zb)
 
 
 @app.get('/eln_settings', response_class=OpenBISmanticResponse, responses=default_responses)

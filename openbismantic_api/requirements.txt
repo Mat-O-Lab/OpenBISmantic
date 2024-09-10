@@ -1,6 +1,6 @@
-fastapi==0.104.1
-uvicorn==0.24.0.post1
+fastapi==0.114.0
+uvicorn==0.30.6
 PyBIS==1.36.3
 Jinja2==3.1.2
-openbis_json_parser @ git+https://github.com/Mat-O-Lab/OpenBIS-Ontology.git@6658673
+openbis_json_parser @ git+https://github.com/Mat-O-Lab/OpenBIS-Ontology.git@881414e066e11e40dce34a726672261b7473ce2c
 url-normalize==1.4.3
