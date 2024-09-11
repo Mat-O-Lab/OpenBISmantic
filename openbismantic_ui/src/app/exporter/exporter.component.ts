@@ -8,7 +8,7 @@ import {BehaviorSubject, map, merge, Observable} from 'rxjs';
 import {OpenbismanticClient} from "../../openbismantic_client";
 import {MatButtonModule} from "@angular/material/button";
 import {SPARQLToQuery} from "rdflib";
-import {NgOptimizedImage} from "@angular/common";
+import {CommonModule, NgOptimizedImage} from "@angular/common";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ConfigService} from "../../config.service";
 
@@ -189,7 +189,8 @@ export class OpenBISDataSource implements DataSource<DynamicFlatNode> {
     MatIconModule,
     MatProgressBarModule,
     MatButtonModule,
-    NgOptimizedImage
+    NgOptimizedImage,
+    CommonModule
   ],
   templateUrl: './exporter.component.html',
   styleUrl: './exporter.component.scss'
@@ -203,6 +204,7 @@ export class ExporterComponent {
     this.dataSource.data = [
       new DynamicFlatNode('instance', new URL('/openbismantic/instance/', this.configService.config.OPENBISMANTIC_URL), 0, true)
     ];
+    this.blacklistIris = new Set();
   }
   openbismanticClient: OpenbismanticClient;
   treeControl: FlatTreeControl<DynamicFlatNode>;
@@ -211,6 +213,7 @@ export class ExporterComponent {
   isExpandable = (node: DynamicFlatNode) => node.expandable;
   hasChild = (_: number, _nodeData: DynamicFlatNode) => _nodeData.expandable;
   isInventorySpace = (node: DynamicFlatNode) => this.openbismanticClient.isInventorySpace(node);
+  blacklistIris: Set<string>;
 
   toggleChecked = (node: DynamicFlatNode) => {
     const checkbox = document.querySelector(`input[data-iri="${node.iri}"]`) as HTMLInputElement;
@@ -260,14 +263,48 @@ export class ExporterComponent {
     a.click();
   }
 
+  exportBundle = () => {
+    this.openbismanticClient.exportBundle().then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', `openbismantic.zip`);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 0);
+    });
+  }
+
+  #queryStore = (queryString: string) => {
+    const query = SPARQLToQuery(queryString, true, this.openbismanticClient.store);
+    if (query === false)
+      throw new Error('failed to create query');
+    return this.openbismanticClient.store.querySync(query);
+  }
+
+  getOpenbisClasses = () => {
+    return this.#queryStore('SELECT ?iri ?code WHERE {' +
+      '  ?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class>;' +
+      '  <https://purl.matolab.org/openbis/code> ?code.' +
+      '}.');
+  }
+
+  getOpenbisProperties = () => {
+    return this.#queryStore('SELECT ?iri ?code WHERE {' +
+      '  ?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty>.' +
+      '}.');
+  }
+
+  toggleBlacklistIri = (e: Event) => {
+    console.log(e);
+  }
+
   graphicQuery = () => {
     const outputElement = document.getElementById('query-output') as HTMLPreElement;
     const queryString = (document.getElementById('query-input') as HTMLTextAreaElement).value;
-    const query = SPARQLToQuery(queryString, true, this.openbismanticClient.internalStore);
-    if (query === false) {
-      outputElement.textContent = 'failed to create query';
-    } else {
-      const res = this.openbismanticClient.store.querySync(query);
+    try {
+      let res = this.#queryStore(queryString);
       outputElement.textContent = '';
       for (let item of res) {
         for (let [key, entry] of Object.entries(item)) {
@@ -276,6 +313,9 @@ export class ExporterComponent {
         }
         outputElement.textContent += '\n';
       }
+    } catch (e) {
+      if (e instanceof Error)
+        outputElement.textContent = e.message;
     }
   }
 }

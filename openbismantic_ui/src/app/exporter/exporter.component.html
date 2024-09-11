@@ -36,10 +36,23 @@
     <button class="dropdown-item" type="button" (click)="exportStore('application/x-turtle', 'ttl')">as turtle</button>
     <button class="dropdown-item" type="button" (click)="exportStore('application/rdf+xml', 'xml')">as xml</button>
     <button class="dropdown-item" type="button" (click)="exportStore('application/n-triples', 'nt')">as ntriples</button>
+    <button class="dropdown-item" type="button" (click)="exportBundle()">as rocrate with data files</button>
+  </div>
+</div>
+<div>
+  Classes:
+  <div *ngFor="let entry of getOpenbisClasses()">
+    <label><input [checked]="!blacklistIris.has(entry['?iri'])" (change)="toggleBlacklistIri" type="checkbox" value="{{entry['?iri']}}"> {{entry['?code']}}</label>
+  </div>
+</div>
+<div>
+  Object Properties:
+  <div *ngFor="let entry of getOpenbisProperties()">
+    {{entry['?iri']}}
   </div>
 </div>
 <div id="query" class="mt-5 mb-5">
-  <textarea class="form-control" id="query-input">SELECT ?iri ?code WHERE {?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://purl.matolab.org/openbis/Space>; <https://purl.matolab.org/openbis/code> ?code.}.</textarea>
+  <textarea class="form-control" id="query-input">SELECT ?iri ?code WHERE {?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://w3id.org/matolab/openbis/Space>; <http://w3id.org/matolab/openbis/code> ?code.}.</textarea>
   <button (click)="graphicQuery()" type="submit" class="btn btn-primary float-end m-1">Query</button>
   <pre class="form-control" id="query-output"></pre>
 </div>

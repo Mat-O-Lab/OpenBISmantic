@@ -35,6 +35,8 @@ class OpenBISmanticResponse(Response):
             self.media_type = 'text/html'
         elif 'application/x-turtle' in accept_header:
             self.media_type = 'application/x-turtle'
+        elif 'application/n-triples' in accept_header:
+            self.media_type = 'application/n-triples'
         elif 'application/ld+json' in accept_header:
             self.media_type = 'application/ld+json'
         elif 'application/rdf+xml' in accept_header:
@@ -52,12 +54,13 @@ class OpenBISmanticResponse(Response):
         onto = parse_dict(content, base_url=base_url)
         if self.media_type == 'text/html':
             template = templates.get_template('app.html')
-            return template.render({'request': self.request, 'onto': onto})
+            return template.render({'request': self.request, 'onto': onto}).encode('utf-8')
         out_file = io.BytesIO()
         export_format = {
             'application/x-turtle': 'turtle',
             'application/ld+json': 'json-ld',
-            'application/rdf+xml': 'xml'
+            'application/rdf+xml': 'xml',
+            'application/n-triples': 'nt'
         }.get(self.media_type, 'json-ld')
         write_ontology(onto, out_file, export_format)
         out_file.seek(0)
@@ -70,6 +73,7 @@ default_responses = {
         "content": {
             "application/ld+json": {},
             "application/x-turtle": {},
+            "application/n-triples": {},
             "application/rdf+xml": {},
             "application/json": {},
         }

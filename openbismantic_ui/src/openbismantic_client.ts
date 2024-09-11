@@ -1,5 +1,5 @@
-import {graph, SPARQLToQuery, Store, parse, serialize} from "rdflib";
-import {DynamicFlatNode, ExporterComponent} from "./app/exporter/exporter.component";
+import {SPARQLToQuery, Store, parse, serialize} from "rdflib";
+import {DynamicFlatNode} from "./app/exporter/exporter.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {LoginComponent} from "./app/login/login.component"
 
@@ -16,12 +16,12 @@ class OpenbismanticStore extends Store {
     if (this.resolvedIris.has(url)) {
       return;
     } else {
-      let res = await fetch(url, {headers: {'Accept': 'application/x-turtle'}});
+      let res = await fetch(url, {headers: {'Accept': 'application/n-triples'}});
       if (res.status === 401) {
         throw new AuthError();
       }
       let body = await res.text();
-      const contentType = /*res.headers.get('content-type') ||*/ 'text/turtle';
+      const contentType = /*res.headers.get('content-type') ||*/ 'text/n3';
       try {
         parse(body, this, 'https://openbis.matolab.org/', contentType);
         this.resolvedIris.add(url)
@@ -76,25 +76,37 @@ export class OpenbismanticClient {
       return null;
     }
     const terms = [];
-    terms.push(`?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://purl.matolab.org/openbis/${this.capitalize(childType)}>; <https://purl.matolab.org/openbis/code> ?code.`);
+    terms.push(`?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://w3id.org/matolab/openbis/${this.capitalize(childType)}>; <http://w3id.org/matolab/openbis/code> ?code.`);
     if (parentType !== 'instance')
-      terms.push(`<${parentIRI.toString()}> <https://purl.matolab.org/openbis/relates_to> ?iri.`)
+      terms.push(`<${parentIRI.toString()}> <http://w3id.org/matolab/openbis/relates_to> ?iri.`)
     return `SELECT ?iri ?code WHERE {${terms.join(' ')}}.`
   }
 
   async getChildren(iri: URL, store: boolean = false) {
-    await (store ? this.store : this.internalStore).fetchUrl(iri);
+    const targetStore = store ? this.store : this.internalStore;
+    await targetStore.fetchUrl(iri);
     const queryString = this.childQueryBuilder(iri);
-    if (!queryString)
-      return [];
-    const query = SPARQLToQuery(queryString, true, this.internalStore);
-    if (query === false)
-      return [];
-    return (store ? this.store : this.internalStore).querySync(query).map(res => ({
-      name: res['?code'].value,
-      iri: new URL(res['?iri'].value),
-      expandable: this.openBISHierarchy.indexOf((new URL(res['?iri'].value)).pathname.split('/')[2]) < (this.openBISHierarchy.length - 1),
-    })).sort((a, b) => a.name.localeCompare(b.name));
+    const query = queryString ? SPARQLToQuery(queryString, true, targetStore) : false;
+    let results: any[] = []
+    if (query !== false)
+      results = targetStore.querySync(query).map(res => ({
+        name: res['?code'].value,
+        iri: new URL(res['?iri'].value),
+        expandable: this.openBISHierarchy.includes((new URL(res['?iri'].value)).pathname.split('/')[2]),
+      })).sort((a, b) => a.name.localeCompare(b.name));
+    if (['collection', 'object'].includes(iri.pathname.split('/')[2])) {
+      const dsQueryString = 'SELECT ?iri ?code WHERE {?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset>; <http://w3id.org/matolab/openbis/code> ?code.}.';
+      const dsQuery = SPARQLToQuery(dsQueryString, true, targetStore);
+      if (dsQuery !== false) {
+        const datasetResults = targetStore.querySync(dsQuery).map(res => ({
+          name: res['?code'].value,
+          iri: new URL(res['?iri'].value),
+          expandable: false
+        }));
+        results.push(...datasetResults);
+      }
+    }
+    return results;
   }
 
   async getELNSettings() {
@@ -132,6 +144,15 @@ export class OpenbismanticClient {
 
   export(format: string) {
     return serialize(null, this.store, undefined, format);
+  }
+
+  exportBundle() {
+    const data = this.export('application/ld+json');
+    return fetch(new URL('/openbismantic/export_bundle', this.baseURL), {
+      method: 'POST',
+      body: JSON.stringify({'graph': data}),
+      headers: {'Content-Type': 'application/json'}
+    }).then(r => r.blob());
   }
 
   async load(...iris: URL[]) {

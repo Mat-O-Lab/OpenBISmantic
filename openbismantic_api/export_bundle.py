@@ -1,6 +1,8 @@
 import io
 import sys
 import zipfile
+import os
+from urllib.parse import urlsplit
 
 import rdflib
 import pybis
@@ -31,23 +33,20 @@ def export_from_graph(bis: pybis.Openbis, graph: rdflib.Graph):
         for query_result in graph.query(distribution_query):
             dist, dataset, perm_id, dl_url = query_result
             dist_path = str(dist)[str(dist).find(perm_id.value):]
-            dist_path_parts = dist_path.split('/')
-            for depth in range(len(dist_path_parts) - 1):
-                new_node = rdflib.URIRef(dist_path_parts[depth])
-                parent_node =  rdflib.URIRef(dist_path_parts[depth - 1] if depth > 0 else './')
-                graph.add((new_node, RDF_SYNTAX.type, SCHEMA.Dataset))
-                graph.add((parent_node, SCHEMA.hasPart, new_node))
-                if depth == 0:
-                    graph.add((new_node, PROV.wasDerivedFrom, dataset))
-            file_node = rdflib.URIRef(dist_path_parts[-1])
+            file_node = rdflib.URIRef(dist_path)
             graph.add((file_node, RDF_SYNTAX.type, SCHEMA.File))
+            graph.add((file_node, PROV.wasDerivedFrom, dist))
             dl_url = f'{dl_url.value}/datastore_server/{dist_path}'
-            # todo: verify that dl_url is this instance, read verify from env vars
-            dl_res = requests.get(dl_url, params={'sessionID': bis.token}, verify=False)
-            if dl_res.status_code == 200:
-                zf.writestr(dist_path, dl_res.content)
+            base_url = os.environ.get('BASE_URL', None)
+            verify = not bool(os.environ.get('NO_VERIFY_CERTIFICATES', False))
+            if base_url and urlsplit(base_url).hostname == urlsplit(dl_url).hostname:
+                dl_res = requests.get(dl_url, params={'sessionID': bis.token}, verify=verify)
+                if dl_res.status_code == 200:
+                    zf.writestr(dist_path, dl_res.content)
+                else:
+                    print(f'failed to download file {dl_url}: {dl_res.status_code}', sys.stderr)
             else:
-                print(f'failed to download file {dl_url}: {dl_res.status_code}', sys.stderr)
+                print(f'not allowed to download {dl_url}', sys.stderr)
 
         gb = io.BytesIO()
         graph.serialize(gb, 'json-ld')
