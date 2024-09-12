@@ -99,7 +99,6 @@ export class OpenbismanticClient {
         '?iri <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset>; <http://w3id.org/matolab/openbis/code> ?code. ' +
         `<${iri.toString()}> <http://w3id.org/matolab/openbis/relates_to> ?iri.` +
         '}.';
-      console.log(dsQueryString);
       const dsQuery = SPARQLToQuery(dsQueryString, true, targetStore);
       if (dsQuery !== false) {
         const datasetResults = targetStore.querySync(dsQuery).map(res => ({
