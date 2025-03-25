@@ -5,6 +5,18 @@ Demonstrator of an Export Mechanism for openBIS Data to Semantic Data.
 # This Repository
 This repository contains the openBISmantic API as well as a demonstrator openBIS istance filled with data from the [LebeDigital](https://github.com/BAMresearch/LebeDigital) project.
 
+# Prototype
+```bash
+URL: https://openbismantic.matolab.org/openbis/webapp/eln-lims
+user: public-user
+password: public
+after login access the URL: https://openbismantic.matolab.org/openbismantic
+![image](https://github.com/Mat-O-Lab/OpenBISmantic/assets/9248325/a88e19f3-00c5-4817-83c4-ed3f5cb9ce3b)
+Click in "exporter"
+Select some instance and click on the button "Load selected"
+Then you can export the triples in .ttl format or run a SPARQL query.
+```
+
 # openBISmantic API
 The openBISmantic API provices access to most entities in your openBIS instance as linked RDF.
 To do that, it defines persistent, resolvable IRIs using their Openbis permIds.  
